@@ -6,44 +6,61 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
+
     var body: some View {
         TabView {
             ProgramRootView()
                 .tabItem {
-                    Label("Programme", systemImage: "calendar")
+                    Label(L10n.text("tab_program", language: appLanguage), systemImage: "calendar")
                 }
 
             WatchListView()
                 .tabItem {
-                    Label("Watch List", systemImage: "bookmark.fill")
+                    Label(L10n.text("tab_watchlist", language: appLanguage), systemImage: "bookmark.fill")
                 }
 
             UsefulInfoView()
                 .tabItem {
-                    Label("Infos", systemImage: "info.circle.fill")
+                    Label(L10n.text("tab_info", language: appLanguage), systemImage: "info.circle.fill")
                 }
 
             AboutFestivalView()
                 .tabItem {
-                    Label("Festival", systemImage: "sparkles")
+                    Label(L10n.text("tab_festival", language: appLanguage), systemImage: "sparkles")
+                }
+
+            SettingsView()
+                .tabItem {
+                    Label(L10n.text("tab_settings", language: appLanguage), systemImage: "gearshape.fill")
                 }
         }
     }
 }
 
 private struct AboutFestivalView: View {
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("CinéTransat")
                         .font(.largeTitle.weight(.bold))
-                    Text("Six semaines, quatre soirs par semaine : cinéma en plein air après le coucher du soleil.")
+                    Text(L10n.text("about_intro", language: appLanguage))
                         .font(.body)
-                    Text("Les données affichées reprennent un programme type (saison \(FestivalProgramData.demoYear)) pour le développement : remplacez-les par votre JSON ou votre CMS lorsque le programme officiel est prêt.")
+                    Text(L10n.text("about_data_copy", language: appLanguage))
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                    Text("Affiches : ajoutez au catalogue d’assets un jeu d’images par soirée, nommé exactement comme la date de la séance au format AAAAMMJJ (ex. 20250710). Tant qu’une image n’existe pas, l’app affiche le fond générique.")
+                    Text(L10n.text("about_poster_copy", language: appLanguage))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -51,7 +68,7 @@ private struct AboutFestivalView: View {
                 .frame(maxWidth: 640)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .navigationTitle("À propos")
+            .navigationTitle(L10n.text("about_title", language: appLanguage))
         }
     }
 }

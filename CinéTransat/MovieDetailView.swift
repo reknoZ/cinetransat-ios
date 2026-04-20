@@ -13,6 +13,7 @@ enum MovieDetailLineupScope: Hashable {
 
 struct MovieDetailView: View {
     @EnvironmentObject private var watchList: WatchListStore
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
     let lineupScope: MovieDetailLineupScope
     @State private var screening: Screening
@@ -20,6 +21,10 @@ struct MovieDetailView: View {
     init(screening: Screening, lineupScope: MovieDetailLineupScope = .fullProgram) {
         self.lineupScope = lineupScope
         _screening = State(initialValue: screening)
+    }
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
     }
 
     private var navigableLineup: [Screening] {
@@ -169,7 +174,7 @@ struct MovieDetailView: View {
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
         }
-        .navigationTitle(screening.title)
+        .navigationTitle(screening.localizedTitle(language: appLanguage))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

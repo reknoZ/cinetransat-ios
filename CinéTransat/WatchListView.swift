@@ -7,6 +7,11 @@ import SwiftUI
 
 struct WatchListView: View {
     @EnvironmentObject private var watchList: WatchListStore
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
 
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -23,7 +28,7 @@ struct WatchListView: View {
                     ContentUnavailableView(
                         "Nothing on your watch list yet",
                         systemImage: "bookmark",
-                        description: Text("Long-press a poster in Programme to mark a screening you plan to see.")
+                        description: Text("Tap the bookmark icon on a poster in Programme to mark a screening you plan to see.")
                     )
                 } else {
                     List(watchList.orderedWatchListScreenings) { screening in
@@ -38,7 +43,7 @@ struct WatchListView: View {
                                 )
 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(screening.title)
+                                    Text(screening.localizedTitle(language: appLanguage))
                                         .font(.headline)
                                         .lineLimit(2)
                                     Text(Self.dateFormatter.string(from: screening.startsAt))

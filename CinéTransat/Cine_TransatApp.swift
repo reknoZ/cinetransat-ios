@@ -10,11 +10,17 @@ import SwiftUI
 @main
 struct Cine_TransatApp: App {
     @StateObject private var watchListStore = WatchListStore()
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
 
     var body: some Scene {
         WindowGroup {
             RootWithLaunchSplash()
                 .environmentObject(watchListStore)
+                .environment(\.locale, Locale(identifier: appLanguage.localeIdentifier))
         }
     }
 }

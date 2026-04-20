@@ -14,7 +14,7 @@ struct MoviePosterCell: View {
     var isOnWatchList: Bool = false
     /// Top-left day pill on the poster (e.g. off for Watch List rows where the date appears beside the title).
     var showDateBadge: Bool = true
-    /// When set, the bookmark is a tappable button (e.g. detail page). Programme grid uses `nil` and long-press to toggle.
+    /// When set, the bookmark is a tappable button (e.g. detail page and Programme grid).
     var onWatchListToggle: (() -> Void)? = nil
 
     /// Day + short month (no time), e.g. "10 juil."

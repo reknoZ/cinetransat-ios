@@ -5,8 +5,6 @@
 
 import SwiftUI
 
-private let programNavigationTitle = "Programme \(FestivalProgramData.demoYear)"
-
 // MARK: - Week pager (below posters, high contrast)
 
 private struct WeekPageIndicatorBar: View {
@@ -48,12 +46,18 @@ private struct WeekPageIndicatorBar: View {
 
 private struct WeekProgramFitContent: View {
     @EnvironmentObject private var watchList: WatchListStore
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
+    @State private var justToggledWatchListID: String?
     @Binding var path: NavigationPath
     let week: FestivalWeek
     let weekNumber: Int
     var compact: Bool
     /// Pulls the date chip closer to the navigation bar (iPhone).
     var tightTop: Bool = false
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
 
     private var rows: [[Screening]] {
         let o = week.orderedScreenings
@@ -64,12 +68,13 @@ private struct WeekProgramFitContent: View {
         GeometryReader { geo in
             let hPad: CGFloat = compact ? 10 : 20
             let weekStripH: CGFloat = compact ? 30 : 38
-            let dateToGridGap: CGFloat = compact ? 6 : 10
+            let dateToGridGap: CGFloat = compact ? 8 : 12
             let rowGap: CGFloat = compact ? 6 : 10
             let colGap: CGFloat = compact ? 14 : 18
-            let titleBlock: CGFloat = compact ? 34 : 38
+            // Reserve enough space for two full caption lines to avoid clipping.
+            let titleBlock: CGFloat = compact ? 42 : 46
 
-            let topInset: CGFloat = tightTop ? 0 : (compact ? 2 : 6)
+            let topInset: CGFloat = tightTop ? -2 : (compact ? 2 : 6)
             let innerW = geo.size.width - hPad * 2
             let innerH = max(
                 0,
@@ -81,7 +86,7 @@ private struct WeekProgramFitContent: View {
             let posterW = max(72, min(posterWFromWidth, posterWFromHeight))
 
             VStack(spacing: 0) {
-                Text("Semaine \(weekNumber) · \(week.label)")
+                Text(localizedWeekLabel(number: weekNumber, weekLabel: week.label, language: appLanguage))
                     .font(.caption.weight(.bold))
                     .tracking(0.6)
                     .foregroundStyle(.primary)
@@ -124,9 +129,18 @@ private struct WeekProgramFitContent: View {
                 screening: screening,
                 compact: compact,
                 posterWidth: posterW,
-                isOnWatchList: watchList.contains(screening)
+                isOnWatchList: watchList.contains(screening),
+                onWatchListToggle: {
+                    justToggledWatchListID = screening.watchListID
+                    watchList.toggle(screening)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        if justToggledWatchListID == screening.watchListID {
+                            justToggledWatchListID = nil
+                        }
+                    }
+                }
             )
-            Text(screening.title)
+            Text(screening.localizedTitle(language: appLanguage))
                 .font(compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -137,10 +151,11 @@ private struct WeekProgramFitContent: View {
         .frame(width: posterW, alignment: .top)
         .contentShape(Rectangle())
         .onTapGesture {
+            if justToggledWatchListID == screening.watchListID {
+                justToggledWatchListID = nil
+                return
+            }
             path.append(screening)
-        }
-        .onLongPressGesture(minimumDuration: 0.45) {
-            watchList.toggle(screening)
         }
     }
 }
@@ -148,8 +163,13 @@ private struct WeekProgramFitContent: View {
 // MARK: - Phone
 
 struct ProgramPhoneView: View {
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var weekIndex = 0
     @State private var path = NavigationPath()
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -163,15 +183,9 @@ struct ProgramPhoneView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
                 WeekPageIndicatorBar(count: FestivalProgramData.weeks.count, selection: $weekIndex)
-
-                Text("Glissez pour changer de semaine")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 2)
-                    .padding(.bottom, 4)
             }
             .background(Color.festivalProgramBackground)
-            .navigationTitle(programNavigationTitle)
+            .navigationTitle(localizedProgramTitle(year: FestivalProgramData.demoYear, language: appLanguage))
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Screening.self) { screening in
                 MovieDetailView(screening: screening, lineupScope: .fullProgram)
@@ -183,8 +197,13 @@ struct ProgramPhoneView: View {
 // MARK: - iPad
 
 struct ProgramPadView: View {
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var selectedWeek: FestivalWeek? = FestivalProgramData.weeks.first
     @State private var path = NavigationPath()
+
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -207,7 +226,7 @@ struct ProgramPadView: View {
                     if let week = selectedWeek ?? FestivalProgramData.weeks.first {
                         WeekProgramFitContent(path: $path, week: week, weekNumber: weekNumber(for: week), compact: false, tightTop: false)
                             .background(Color.festivalProgramBackground)
-                            .navigationTitle(programNavigationTitle)
+                            .navigationTitle(localizedProgramTitle(year: FestivalProgramData.demoYear, language: appLanguage))
                             .navigationBarTitleDisplayMode(.inline)
                             .navigationDestination(for: Screening.self) { screening in
                                 MovieDetailView(screening: screening, lineupScope: .fullProgram)
@@ -225,7 +244,7 @@ struct ProgramPadView: View {
     }
 
     private func subtitle(for week: FestivalWeek) -> String {
-        let titles = week.orderedScreenings.map(\.title).joined(separator: ", ")
+        let titles = week.orderedScreenings.map { $0.localizedTitle(language: appLanguage) }.joined(separator: ", ")
         if titles.count > 72 {
             return String(titles.prefix(70)) + "…"
         }
