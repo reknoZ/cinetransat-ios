@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 2,
+  "seasonYear": 2026,
+  "updatedAt": "2026-06-15T21:30:29+02:00",
+  "weeks": [
+    {
+      "id": "2026-w1",
+      "label": "9–12 juillet",
+      "screenings": [
+        {
+          "id": "20260709",
+          "title": "Grease",
+          "startsAt": "2026-07-09T21:45:00+02:00",
+          "sunset": "2026-07-09T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Ouverture de la saison : comédie musicale des années 50 au lycée Rydell.",
+          "posterKey": "grease",
+          "runtimeMinutes": 110
+        },
+        {
+          "id": "20260710",
+          "title": "La Grande Vadrouille",
+          "startsAt": "2026-07-10T21:45:00+02:00",
+          "sunset": "2026-07-10T21:17:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Classique absurde de la Seconde Guerre mondiale avec Bourvil et de Funès.",
+          "posterKey": "la-grande-vadrouille",
+          "runtimeMinutes": 132
+        },
+        {
+          "id": "20260711",
+          "title": "Back to the Future",
+          "startsAt": "2026-07-11T21:45:00+02:00",
+          "sunset": "2026-07-11T21:16:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Voyage dans le temps et rock'n'roll des années 1980.",
+          "posterKey": "back-to-the-future",
+          "runtimeMinutes": 116
+        },
+        {
+          "id": "20260712",
+          "title": "The Grand Budapest Hotel",
+          "startsAt": "2026-07-12T21:45:00+02:00",
+          "sunset": "2026-07-12T21:15:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Farce colorée et nostalgique signée Wes Anderson.",
+          "posterKey": "the-grand-budapest-hotel",
+          "runtimeMinutes": 100
+        }
+      ]
+    },
+    {
+      "id": "2026-w2",
+      "label": "16–19 juillet",
+      "screenings": [
+        {
+          "id": "20260716",
+          "title": "Jurassic Park",
+          "startsAt": "2026-07-16T21:45:00+02:00",
+          "sunset": "2026-07-16T21:12:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Les dinosaures sortent de leur enclos — le blockbuster paranoïaque de Spielberg.",
+          "posterKey": "jurassic-park",
+          "runtimeMinutes": 127
+        },
+        {
+          "id": "20260717",
+          "title": "Kung Fu Panda",
+          "startsAt": "2026-07-17T21:45:00+02:00",
+          "sunset": "2026-07-17T21:11:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Un panda maladroit devient un héros de légende.",
+          "posterKey": "kung-fu-panda",
+          "runtimeMinutes": 92
+        },
+        {
+          "id": "20260718",
+          "title": "Soirée choréoké",
+          "startsAt": "2026-07-18T21:45:00+02:00",
+          "sunset": "2026-07-18T21:10:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Chantez devant l'écran : tubes français et internationaux sous les étoiles.",
+          "posterKey": "soirée-choréoké"
+        },
+        {
+          "id": "20260719",
+          "title": "Les Choristes",
+          "startsAt": "2026-07-19T21:45:00+02:00",
+          "sunset": "2026-07-19T21:08:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Un professeur de musique transforme la vie d'élèves en pensionnat.",
+          "posterKey": "les-choristes",
+          "runtimeMinutes": 97
+        }
+      ]
+    },
+    {
+      "id": "2026-w3",
+      "label": "23–26 juillet",
+      "screenings": [
+        {
+          "id": "20260723",
+          "title": "Intouchables",
+          "startsAt": "2026-07-23T21:45:00+02:00",
+          "sunset": "2026-07-23T21:04:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Comédie française sur une amitié improbable entre un aristocrate et son aide.",
+          "posterKey": "intouchables",
+          "runtimeMinutes": 112
+        },
+        {
+          "id": "20260724",
+          "title": "Parasite",
+          "startsAt": "2026-07-24T21:45:00+02:00",
+          "sunset": "2026-07-24T21:02:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Thriller social coréen sur deux familles aux antipodes.",
+          "posterKey": "parasite",
+          "runtimeMinutes": 132
+        },
+        {
+          "id": "20260725",
+          "title": "Flashdance",
+          "startsAt": "2026-07-25T21:45:00+02:00",
+          "sunset": "2026-07-25T21:01:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Une soudeuse rêve de devenir danseuse — tubes et chorégraphies des années 80.",
+          "posterKey": "flashdance",
+          "runtimeMinutes": 95
+        },
+        {
+          "id": "20260726",
+          "title": "Soirée courts-métrages",
+          "startsAt": "2026-07-26T21:45:00+02:00",
+          "sunset": "2026-07-26T21:00:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Sélection de courts métrages suisses et internationaux.",
+          "posterKey": "soirée-court-métrages"
+        }
+      ]
+    },
+    {
+      "id": "2026-w4",
+      "label": "30 juillet – 2 août",
+      "screenings": [
+        {
+          "id": "20260730",
+          "title": "Notting Hill",
+          "startsAt": "2026-07-30T21:45:00+02:00",
+          "sunset": "2026-07-30T20:54:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Romance londonienne entre une star et un libraire.",
+          "posterKey": "notting-hill",
+          "runtimeMinutes": 124
+        },
+        {
+          "id": "20260731",
+          "title": "Delicatessen",
+          "startsAt": "2026-07-31T21:45:00+02:00",
+          "sunset": "2026-07-31T20:52:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Comédie noire et burlesque dans un immeuble post-apocalyptique.",
+          "posterKey": "delicatessen",
+          "runtimeMinutes": 99
+        },
+        {
+          "id": "20260801",
+          "title": "Kirikou et la Sorcière",
+          "startsAt": "2026-08-01T21:45:00+02:00",
+          "sunset": "2026-08-01T20:50:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Conte africain en animation pour petits et grands.",
+          "posterKey": "kirikou-et-la-sorciere",
+          "runtimeMinutes": 71
+        },
+        {
+          "id": "20260802",
+          "title": "Raiders of the Lost Ark",
+          "startsAt": "2026-08-02T21:45:00+02:00",
+          "sunset": "2026-08-02T20:49:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Indiana Jones et une course contre la montre pour l'Arche d'alliance.",
+          "posterKey": "raiders-of-the-lost-ark",
+          "runtimeMinutes": 115
+        }
+      ]
+    },
+    {
+      "id": "2026-w5",
+      "label": "6–9 août",
+      "screenings": [
+        {
+          "id": "20260806",
+          "title": "Your Name.",
+          "startsAt": "2026-08-06T21:45:00+02:00",
+          "sunset": "2026-08-06T20:42:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Deux adolescents échangent leurs corps à distance — anime poétique.",
+          "posterKey": "your-name",
+          "runtimeMinutes": 106,
+          "searchTitle": "Your Name"
+        },
+        {
+          "id": "20260807",
+          "title": "Cinema Paradiso",
+          "startsAt": "2026-08-07T21:45:00+02:00",
+          "sunset": "2026-08-07T20:40:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Hommage au cinéma de village et à l'amitié entre un projectionniste et un enfant.",
+          "posterKey": "cinema-paradiso",
+          "runtimeMinutes": 124
+        },
+        {
+          "id": "20260808",
+          "title": "Forrest Gump",
+          "startsAt": "2026-08-08T21:45:00+02:00",
+          "sunset": "2026-08-08T20:39:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Une odyssée américaine vue par un homme simple et bon.",
+          "posterKey": "forrest-gump",
+          "runtimeMinutes": 142
+        },
+        {
+          "id": "20260809",
+          "title": "The Matrix",
+          "startsAt": "2026-08-09T21:45:00+02:00",
+          "sunset": "2026-08-09T20:37:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Science-fiction et kung-fu : le monde n'est peut-être qu'une simulation.",
+          "posterKey": "the-matrix",
+          "runtimeMinutes": 136
+        }
+      ]
+    },
+    {
+      "id": "2026-w6",
+      "label": "13–16 août",
+      "screenings": [
+        {
+          "id": "20260813",
+          "title": "Soirée rattrapage",
+          "startsAt": "2026-08-13T21:45:00+02:00",
+          "sunset": "2026-08-13T20:30:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Programme variable : films manqués ou invités de la saison.",
+          "posterKey": "soirée-rattrapage"
+        },
+        {
+          "id": "20260814",
+          "title": "Casablanca",
+          "startsAt": "2026-08-14T21:45:00+02:00",
+          "sunset": "2026-08-14T20:28:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Romance et exil au Maroc pendant la guerre — classique intemporel.",
+          "posterKey": "casablanca",
+          "runtimeMinutes": 102
+        },
+        {
+          "id": "20260815",
+          "title": "RRR",
+          "startsAt": "2026-08-15T21:45:00+02:00",
+          "sunset": "2026-08-15T20:26:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Épopée indienne d'amitié, de rébellion et de numéros spectaculaires.",
+          "posterKey": "rrr",
+          "runtimeMinutes": 187
+        },
+        {
+          "id": "20260816",
+          "title": "Le Dîner de cons",
+          "startsAt": "2026-08-16T21:45:00+02:00",
+          "sunset": "2026-08-16T20:24:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Farce française autour d'un dîner de fous entre amis.",
+          "posterKey": "le-diner-de-cons",
+          "runtimeMinutes": 80
+        }
+      ]
+    }
+  ]
+}

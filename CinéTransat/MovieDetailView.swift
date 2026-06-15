@@ -12,6 +12,7 @@ enum MovieDetailLineupScope: Hashable {
 }
 
 struct MovieDetailView: View {
+    @EnvironmentObject private var program: FestivalProgramStore
     @EnvironmentObject private var watchList: WatchListStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
@@ -30,9 +31,9 @@ struct MovieDetailView: View {
     private var navigableLineup: [Screening] {
         switch lineupScope {
         case .fullProgram:
-            FestivalProgramData.weeks.flatMap(\.orderedScreenings)
+            program.allScreenings
         case .watchListOnly:
-            watchList.orderedWatchListScreenings
+            watchList.orderedWatchListScreenings(in: program.weeks)
         }
     }
 
@@ -48,6 +49,12 @@ struct MovieDetailView: View {
     private var nextScreening: Screening? {
         guard let i = lineupIndex, i + 1 < navigableLineup.count else { return nil }
         return navigableLineup[i + 1]
+    }
+
+    private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
+        let mayAdd = program.canAddToWatchList(screening)
+        guard mayAdd || watchList.contains(screening) else { return nil }
+        return { watchList.toggle(screening, mayAdd: mayAdd) }
     }
 
     private static let dayFormatter: DateFormatter = {
@@ -93,8 +100,10 @@ struct MovieDetailView: View {
                         screening: screening,
                         compact: false,
                         isOnWatchList: watchList.contains(screening),
-                        onWatchListToggle: { watchList.toggle(screening) }
+                        watchListEnabled: program.canAddToWatchList(screening),
+                        onWatchListToggle: watchListToggleAction(for: screening)
                     )
+                    .id(screening.id)
                     .frame(maxWidth: 280)
 
                     if let next = nextScreening {
@@ -123,11 +132,15 @@ struct MovieDetailView: View {
                         Label("Séance annulée", systemImage: "exclamationmark.triangle.fill")
                             .font(.headline)
                             .foregroundStyle(.orange)
+                    } else if screening.hasPassed {
+                        Label(L10n.text("screening_passed", language: appLanguage), systemImage: "clock.arrow.circlepath")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
                     }
 
                     Text(Self.dayFormatter.string(from: screening.startsAt))
                         .font(.title3)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(screening.hasPassed ? .tertiary : .secondary)
 
                     LabeledContent("Coucher du soleil (indicatif)") {
                         Text(Self.timeFormatter.string(from: screening.sunsetAt))
@@ -144,6 +157,7 @@ struct MovieDetailView: View {
                             Text("\(m) min")
                         }
                         .font(.body)
+                        .foregroundStyle(m == 0 ? .secondary : .primary)
                     } else {
                         LabeledContent("Durée") {
                             Text("Variable")
@@ -159,15 +173,22 @@ struct MovieDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Références")
                         .font(.headline)
-                    Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
+                    if screening.externalSearchLinksEnabled {
+                        Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
+                            Label("Recherche sur IMDb", systemImage: "globe")
+                        }
+                        Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
+                            Label("Recherche sur Allociné", systemImage: "popcorn.fill")
+                        }
+                        Text("Les liens ouvrent Safari avec une recherche préremplie.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    } else {
                         Label("Recherche sur IMDb", systemImage: "globe")
-                    }
-                    Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
+                            .foregroundStyle(.secondary)
                         Label("Recherche sur Allociné", systemImage: "popcorn.fill")
+                            .foregroundStyle(.secondary)
                     }
-                    Text("Les liens ouvrent Safari avec une recherche préremplie.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
             }
             .padding()
@@ -181,7 +202,8 @@ struct MovieDetailView: View {
 
 #Preview {
     NavigationStack {
-        MovieDetailView(screening: FestivalProgramData.weeks[0].orderedScreenings[0])
+        MovieDetailView(screening: FestivalProgramBootstrap.weeks[0].orderedScreenings[0])
     }
+    .environmentObject(FestivalProgramStore.preview)
     .environmentObject(WatchListStore())
 }

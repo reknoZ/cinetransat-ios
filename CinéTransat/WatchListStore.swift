@@ -28,18 +28,25 @@ final class WatchListStore: ObservableObject {
         screeningIDs.contains(screening.watchListID)
     }
 
-    func toggle(_ screening: Screening) {
+    func toggle(_ screening: Screening, mayAdd: Bool = true) {
         let id = screening.watchListID
         if screeningIDs.contains(id) {
             screeningIDs.remove(id)
-        } else {
+        } else if mayAdd {
             screeningIDs.insert(id)
         }
         persist()
     }
 
-    var orderedWatchListScreenings: [Screening] {
-        FestivalProgramData.weeks
+    func replaceScreeningIDs(_ ids: Set<String>, persist shouldPersist: Bool = true) {
+        screeningIDs = ids
+        if shouldPersist {
+            persist()
+        }
+    }
+
+    func orderedWatchListScreenings(in weeks: [FestivalWeek]) -> [Screening] {
+        weeks
             .flatMap(\.orderedScreenings)
             .filter { screeningIDs.contains($0.watchListID) }
             .sorted { $0.startsAt < $1.startsAt }

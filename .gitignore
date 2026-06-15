@@ -1,0 +1,15 @@
+# Xcode
+DerivedData/
+.derivedDataScreenshots/
+*.xcuserstate
+xcuserdata/
+
+# Firebase (download from console per machine / CI secret)
+.firebase/
+CinéTransat/GoogleService-Info.plist
+CinéTransat/GoogleService-Info-*.plist
+scripts/serviceAccountKey.json
+scripts/.venv/
+
+# macOS
+.DS_Store

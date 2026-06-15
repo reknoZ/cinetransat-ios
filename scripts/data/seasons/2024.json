@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 2,
+  "seasonYear": 2024,
+  "updatedAt": "2026-05-26T14:00:00+02:00",
+  "weeks": [
+    {
+      "id": "2024-w1",
+      "label": "11–14 juillet",
+      "screenings": [
+        {
+          "id": "20240711",
+          "title": "Dirty Dancing",
+          "startsAt": "2024-07-11T21:45:00+02:00",
+          "sunset": "2024-07-11T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "dirty-dancing",
+          "runtimeMinutes": 100
+        },
+        {
+          "id": "20240712",
+          "title": "Nausicaä",
+          "startsAt": "2024-07-12T21:45:00+02:00",
+          "sunset": "2024-07-12T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "nausicaa",
+          "runtimeMinutes": 117
+        },
+        {
+          "id": "20240713",
+          "title": "Spider Man",
+          "startsAt": "2024-07-13T21:45:00+02:00",
+          "sunset": "2024-07-13T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "spider-man",
+          "runtimeMinutes": 121
+        },
+        {
+          "id": "20240714",
+          "title": "Antoinette dans les Cévennes",
+          "startsAt": "2024-07-14T21:45:00+02:00",
+          "sunset": "2024-07-14T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "antoinette-dans-les-cevennes",
+          "runtimeMinutes": 96
+        }
+      ]
+    },
+    {
+      "id": "2024-w2",
+      "label": "18–21 juillet",
+      "screenings": [
+        {
+          "id": "20240718",
+          "title": "Blue Jean",
+          "startsAt": "2024-07-18T21:45:00+02:00",
+          "sunset": "2024-07-18T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "blue-jean",
+          "runtimeMinutes": 97
+        },
+        {
+          "id": "20240719",
+          "title": "A Shaun the Sheep Movie: Farmageddon",
+          "startsAt": "2024-07-19T21:45:00+02:00",
+          "sunset": "2024-07-19T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "a-shaun-the-sheep-movie-farmageddon",
+          "runtimeMinutes": 86
+        },
+        {
+          "id": "20240720",
+          "title": "Soirée choréoké",
+          "startsAt": "2024-07-20T21:45:00+02:00",
+          "sunset": "2024-07-20T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "soiree-choreoke",
+          "runtimeMinutes": 0
+        },
+        {
+          "id": "20240721",
+          "title": "Chef",
+          "startsAt": "2024-07-21T21:45:00+02:00",
+          "sunset": "2024-07-21T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "chef",
+          "runtimeMinutes": 114
+        }
+      ]
+    },
+    {
+      "id": "2024-w3",
+      "label": "25–28 juillet",
+      "screenings": [
+        {
+          "id": "20240725",
+          "title": "Hit the Road",
+          "startsAt": "2024-07-25T21:45:00+02:00",
+          "sunset": "2024-07-25T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "hit-the-road",
+          "runtimeMinutes": 93
+        },
+        {
+          "id": "20240726",
+          "title": "Starbuck",
+          "startsAt": "2024-07-26T21:45:00+02:00",
+          "sunset": "2024-07-26T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "starbuck",
+          "runtimeMinutes": 109
+        },
+        {
+          "id": "20240727",
+          "title": "The Fifth Element",
+          "startsAt": "2024-07-27T21:45:00+02:00",
+          "sunset": "2024-07-27T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "the-fifth-element",
+          "runtimeMinutes": 126
+        },
+        {
+          "id": "20240728",
+          "title": "Capharnaüm",
+          "startsAt": "2024-07-28T21:45:00+02:00",
+          "sunset": "2024-07-28T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "capharnaum",
+          "runtimeMinutes": 126
+        }
+      ]
+    },
+    {
+      "id": "2024-w4",
+      "label": "1–4 août",
+      "screenings": [
+        {
+          "id": "20240801",
+          "title": "Last Dance",
+          "startsAt": "2024-08-01T21:45:00+02:00",
+          "sunset": "2024-08-01T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "last-dance",
+          "runtimeMinutes": 82
+        },
+        {
+          "id": "20240802",
+          "title": "La Extorsion",
+          "startsAt": "2024-08-02T21:45:00+02:00",
+          "sunset": "2024-08-02T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "la-extorsion",
+          "runtimeMinutes": 105
+        },
+        {
+          "id": "20240803",
+          "title": "Belle",
+          "startsAt": "2024-08-03T21:45:00+02:00",
+          "sunset": "2024-08-03T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "belle",
+          "runtimeMinutes": 100
+        },
+        {
+          "id": "20240804",
+          "title": "Soirée courts-métrages",
+          "startsAt": "2024-08-04T21:45:00+02:00",
+          "sunset": "2024-08-04T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "soiree-courts-metrages",
+          "runtimeMinutes": 0
+        }
+      ]
+    },
+    {
+      "id": "2024-w5",
+      "label": "8–11 août",
+      "screenings": [
+        {
+          "id": "20240808",
+          "title": "Les invisibles",
+          "startsAt": "2024-08-08T21:45:00+02:00",
+          "sunset": "2024-08-08T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "les-invisibles",
+          "runtimeMinutes": 102
+        },
+        {
+          "id": "20240809",
+          "title": "Melancholia",
+          "startsAt": "2024-08-09T21:45:00+02:00",
+          "sunset": "2024-08-09T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "melancholia",
+          "runtimeMinutes": 135
+        },
+        {
+          "id": "20240810",
+          "title": "Casino Royale",
+          "startsAt": "2024-08-10T21:45:00+02:00",
+          "sunset": "2024-08-10T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "casino-royale",
+          "runtimeMinutes": 144
+        },
+        {
+          "id": "20240811",
+          "title": "North by Northwest",
+          "startsAt": "2024-08-11T21:45:00+02:00",
+          "sunset": "2024-08-11T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "north-by-northwest",
+          "runtimeMinutes": 136
+        }
+      ]
+    },
+    {
+      "id": "2024-w6",
+      "label": "15–18 août",
+      "screenings": [
+        {
+          "id": "20240815",
+          "title": "Soirée rattrapage",
+          "startsAt": "2024-08-15T21:45:00+02:00",
+          "sunset": "2024-08-15T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "soiree-rattrapage",
+          "runtimeMinutes": 0
+        },
+        {
+          "id": "20240816",
+          "title": "Imagine Me & You",
+          "startsAt": "2024-08-16T21:45:00+02:00",
+          "sunset": "2024-08-16T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "imagine-me-and-you",
+          "runtimeMinutes": 90
+        },
+        {
+          "id": "20240817",
+          "title": "Bãhubali: The Beginning",
+          "startsAt": "2024-08-17T21:45:00+02:00",
+          "sunset": "2024-08-17T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Épopée indienne grand spectacle.",
+          "posterKey": "bahubali-the-beginning",
+          "runtimeMinutes": 159
+        },
+        {
+          "id": "20240818",
+          "title": "Mamma mia",
+          "startsAt": "2024-08-18T21:45:00+02:00",
+          "sunset": "2024-08-18T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "",
+          "posterKey": "mamma-mia",
+          "runtimeMinutes": 108
+        }
+      ]
+    }
+  ]
+}

@@ -5,16 +5,19 @@
 
 import SwiftUI
 
-/// Full-screen splash: logo scales from a dot at the center to full layout size, then calls `onFinished`.
+/// Launch splash: logo animation first, then an on-screen progress indicator while data loads.
 struct FestivalLaunchSplashView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    let onFinished: () -> Void
+    @Binding var isLoading: Bool
+    let onAnimationComplete: () -> Void
 
-    @State private var logoScale: CGFloat = 0.02
+    @State private var logoScale: CGFloat = 0.35
+    @State private var logoOpacity: Double = 0.6
+    @State private var didRunSequence = false
 
-    /// Extra time the full-size logo stays on screen before handing off to the programme.
-    private static let postZoomHoldNanoseconds: UInt64 = 2_500_000_000
+    private static let animateInDuration: TimeInterval = 0.5
+    private static let holdAfterAnimate: TimeInterval = 0.15
 
     var body: some View {
         ZStack {
@@ -26,54 +29,59 @@ struct FestivalLaunchSplashView: View {
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
-                    .frame(maxWidth: 320, maxHeight: 200)
+                    .frame(maxWidth: 280, maxHeight: 160)
                     .accessibilityLabel("Festival logo")
 
-                Text(verbatim: "\(FestivalProgramData.demoYear)")
-                    .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .tracking(6)
+                Text(verbatim: "\(FestivalPublicConfig.currentSeasonYear)")
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .tracking(4)
                     .foregroundStyle(.primary.opacity(0.72))
-                    .accessibilityLabel("Saison \(FestivalProgramData.demoYear)")
+                    .accessibilityLabel("Saison \(FestivalPublicConfig.currentSeasonYear)")
+            }
+            .scaleEffect(logoScale, anchor: .center)
+            .opacity(logoOpacity)
+            .overlay(alignment: .bottom) {
+                if isLoading {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.primary)
+                        .offset(y: 52)
+                        .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                        .accessibilityLabel("Chargement des affiches")
+                }
             }
             .padding(.horizontal, 36)
-            .scaleEffect(logoScale, anchor: .center)
+            .animation(.easeOut(duration: 0.25), value: isLoading)
         }
-        .task {
-            if reduceMotion {
-                logoScale = 1
-                try? await Task.sleep(nanoseconds: 400_000_000)
-            } else {
-                withAnimation(.spring(response: 0.92, dampingFraction: 0.78, blendDuration: 0)) {
-                    logoScale = 1
-                }
-                try? await Task.sleep(nanoseconds: 1_050_000_000)
+        .onAppear(perform: runSplashSequence)
+    }
+
+    private func runSplashSequence() {
+        guard !didRunSequence else { return }
+        didRunSequence = true
+
+        if reduceMotion {
+            logoScale = 1
+            logoOpacity = 1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                onAnimationComplete()
             }
-            try? await Task.sleep(nanoseconds: Self.postZoomHoldNanoseconds)
-            onFinished()
+            return
+        }
+
+        withAnimation(.easeOut(duration: Self.animateInDuration)) {
+            logoScale = 1
+            logoOpacity = 1
+        }
+
+        let totalDelay = Self.animateInDuration + Self.holdAfterAnimate
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDelay) {
+            onAnimationComplete()
         }
     }
 }
 
 #Preview("Launch splash") {
-    FestivalLaunchSplashView(onFinished: {})
-}
-
-#Preview("Launch splash (start frame)") {
-    ZStack {
-        Color.festivalProgramBackground
-            .ignoresSafeArea()
-        VStack(spacing: 14) {
-            Image("FestivalLogo")
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .frame(maxWidth: 320, maxHeight: 200)
-            Text(verbatim: "\(FestivalProgramData.demoYear)")
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .tracking(6)
-                .foregroundStyle(.primary.opacity(0.72))
-        }
-        .padding(.horizontal, 36)
-        .scaleEffect(0.02, anchor: .center)
-    }
+    @Previewable @State var loading = false
+    FestivalLaunchSplashView(isLoading: $loading, onAnimationComplete: { loading = true })
 }

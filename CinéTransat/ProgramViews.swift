@@ -45,9 +45,11 @@ private struct WeekPageIndicatorBar: View {
 // MARK: - Week grid (fits without vertical scroll)
 
 private struct WeekProgramFitContent: View {
+    @EnvironmentObject private var program: FestivalProgramStore
     @EnvironmentObject private var watchList: WatchListStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var justToggledWatchListID: String?
+    @State private var isRefreshingPosters = false
     @Binding var path: NavigationPath
     let week: FestivalWeek
     let weekNumber: Int
@@ -86,19 +88,42 @@ private struct WeekProgramFitContent: View {
             let posterW = max(72, min(posterWFromWidth, posterWFromHeight))
 
             VStack(spacing: 0) {
-                Text(localizedWeekLabel(number: weekNumber, weekLabel: week.label, language: appLanguage))
-                    .font(.caption.weight(.bold))
-                    .tracking(0.6)
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, compact ? 5 : 7)
-                    .background {
-                        Capsule()
-                            .fill(.background.secondary)
-                            .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                HStack(alignment: .center, spacing: 8) {
+                    Text(localizedWeekLabel(number: weekNumber, weekLabel: week.label, language: appLanguage))
+                        .font(.caption.weight(.bold))
+                        .tracking(0.6)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, compact ? 5 : 7)
+                        .background {
+                            Capsule()
+                                .fill(.background.secondary)
+                                .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                        }
+
+                    Spacer(minLength: 0)
+
+                    Button {
+                        Task { await refreshPosters() }
+                    } label: {
+                        Group {
+                            if isRefreshingPosters {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.body.weight(.semibold))
+                            }
+                        }
+                        .frame(width: 32, height: 32)
+                        .foregroundStyle(Color.accentColor)
                     }
-                    .frame(height: weekStripH)
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.plain)
+                    .disabled(isRefreshingPosters)
+                    .accessibilityLabel(L10n.text("program_refresh_posters", language: appLanguage))
+                }
+                .frame(height: weekStripH)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Color.clear.frame(height: dateToGridGap)
 
@@ -122,6 +147,28 @@ private struct WeekProgramFitContent: View {
         }
     }
 
+    private func refreshPosters() async {
+        guard !isRefreshingPosters else { return }
+        isRefreshingPosters = true
+        defer { isRefreshingPosters = false }
+        let keys = Set(week.orderedScreenings.map(\.posterKey))
+        _ = await program.refreshMissingPosters(for: keys)
+    }
+
+    private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
+        let mayAdd = program.canAddToWatchList(screening)
+        guard mayAdd || watchList.contains(screening) else { return nil }
+        return {
+            justToggledWatchListID = screening.watchListID
+            watchList.toggle(screening, mayAdd: mayAdd)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if justToggledWatchListID == screening.watchListID {
+                    justToggledWatchListID = nil
+                }
+            }
+        }
+    }
+
     @ViewBuilder
     private func posterCell(screening: Screening, posterW: CGFloat, titleBlock: CGFloat) -> some View {
         VStack(spacing: compact ? 4 : 6) {
@@ -130,18 +177,13 @@ private struct WeekProgramFitContent: View {
                 compact: compact,
                 posterWidth: posterW,
                 isOnWatchList: watchList.contains(screening),
-                onWatchListToggle: {
-                    justToggledWatchListID = screening.watchListID
-                    watchList.toggle(screening)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        if justToggledWatchListID == screening.watchListID {
-                            justToggledWatchListID = nil
-                        }
-                    }
-                }
+                watchListEnabled: program.canAddToWatchList(screening),
+                onWatchListToggle: watchListToggleAction(for: screening)
             )
             Text(screening.localizedTitle(language: appLanguage))
                 .font(compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
+                .foregroundStyle(screening.hasPassed ? Color.secondary : Color.primary)
+                .opacity(screening.hasPassed ? 0.8 : 1)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
@@ -163,6 +205,8 @@ private struct WeekProgramFitContent: View {
 // MARK: - Phone
 
 struct ProgramPhoneView: View {
+    @EnvironmentObject private var program: FestivalProgramStore
+    @Environment(\.appStoreScreenshotProgramWeekIndex) private var screenshotWeekIndex
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var weekIndex = 0
     @State private var path = NavigationPath()
@@ -171,24 +215,38 @@ struct ProgramPhoneView: View {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
     }
 
+    private let horizontalPadding: CGFloat = 10
+
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
+                ProgramSeasonPicker(appLanguage: appLanguage) {
+                    weekIndex = 0
+                }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, 4)
+                .padding(.bottom, 2)
+
                 TabView(selection: $weekIndex) {
-                    ForEach(Array(FestivalProgramData.weeks.enumerated()), id: \.element.id) { index, week in
+                    ForEach(Array(program.weeks.enumerated()), id: \.element.id) { index, week in
                         WeekProgramFitContent(path: $path, week: week, weekNumber: index + 1, compact: true, tightTop: true)
                             .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
-                WeekPageIndicatorBar(count: FestivalProgramData.weeks.count, selection: $weekIndex)
+                WeekPageIndicatorBar(count: program.weeks.count, selection: $weekIndex)
             }
             .background(Color.festivalProgramBackground)
-            .navigationTitle(localizedProgramTitle(year: FestivalProgramData.demoYear, language: appLanguage))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Screening.self) { screening in
                 MovieDetailView(screening: screening, lineupScope: .fullProgram)
+            }
+            .onAppear {
+                guard let screenshotWeekIndex else { return }
+                let maxIndex = max(0, program.weeks.count - 1)
+                weekIndex = min(max(0, screenshotWeekIndex), maxIndex)
             }
         }
     }
@@ -197,8 +255,9 @@ struct ProgramPhoneView: View {
 // MARK: - iPad
 
 struct ProgramPadView: View {
+    @EnvironmentObject private var program: FestivalProgramStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
-    @State private var selectedWeek: FestivalWeek? = FestivalProgramData.weeks.first
+    @State private var selectedWeek: FestivalWeek?
     @State private var path = NavigationPath()
 
     private var appLanguage: AppLanguage {
@@ -208,7 +267,7 @@ struct ProgramPadView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedWeek) {
-                ForEach(FestivalProgramData.weeks) { week in
+                ForEach(program.weeks) { week in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(week.label)
                             .font(.headline)
@@ -219,15 +278,35 @@ struct ProgramPadView: View {
                     .tag(week)
                 }
             }
-            .navigationTitle("Semaines")
+            .navigationTitle(appLanguage == .fr ? "Semaines" : "Weeks")
+            .onAppear {
+                if selectedWeek == nil {
+                    selectedWeek = program.weeks.first
+                }
+            }
+            .onChange(of: program.weeks) { _, weeks in
+                if let selected = selectedWeek, weeks.contains(where: { $0.id == selected.id }) {
+                    return
+                }
+                selectedWeek = weeks.first
+            }
         } detail: {
             NavigationStack(path: $path) {
                 Group {
-                    if let week = selectedWeek ?? FestivalProgramData.weeks.first {
-                        WeekProgramFitContent(path: $path, week: week, weekNumber: weekNumber(for: week), compact: false, tightTop: false)
+                    if let week = selectedWeek ?? program.weeks.first {
+                        VStack(spacing: 0) {
+                            ProgramSeasonPicker(appLanguage: appLanguage) {
+                                selectedWeek = program.weeks.first
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                            .padding(.bottom, 4)
+
+                            WeekProgramFitContent(path: $path, week: week, weekNumber: weekNumber(for: week), compact: false, tightTop: false)
+                        }
                             .background(Color.festivalProgramBackground)
-                            .navigationTitle(localizedProgramTitle(year: FestivalProgramData.demoYear, language: appLanguage))
                             .navigationBarTitleDisplayMode(.inline)
+                            .toolbar(.hidden, for: .navigationBar)
                             .navigationDestination(for: Screening.self) { screening in
                                 MovieDetailView(screening: screening, lineupScope: .fullProgram)
                             }
@@ -252,7 +331,7 @@ struct ProgramPadView: View {
     }
 
     private func weekNumber(for week: FestivalWeek) -> Int {
-        (FestivalProgramData.weeks.firstIndex { $0.id == week.id } ?? 0) + 1
+        (program.weeks.firstIndex { $0.id == week.id } ?? 0) + 1
     }
 }
 

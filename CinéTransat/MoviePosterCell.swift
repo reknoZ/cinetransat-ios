@@ -7,15 +7,24 @@ import SwiftUI
 import UIKit
 
 struct MoviePosterCell: View {
+    @EnvironmentObject private var program: FestivalProgramStore
+    @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
+
     let screening: Screening
     var compact: Bool = false
     /// When set, poster is drawn at this width (height = width × 3/2). Otherwise uses flexible aspect-ratio tile.
     var posterWidth: CGFloat? = nil
     var isOnWatchList: Bool = false
+    /// When false, bookmark is hidden unless the screening is already on the list (remove allowed).
+    var watchListEnabled: Bool = true
     /// Top-left day pill on the poster (e.g. off for Watch List rows where the date appears beside the title).
     var showDateBadge: Bool = true
     /// When set, the bookmark is a tappable button (e.g. detail page and Programme grid).
     var onWatchListToggle: (() -> Void)? = nil
+
+    private var showsWatchListControl: Bool {
+        watchListEnabled || isOnWatchList
+    }
 
     /// Day + short month (no time), e.g. "10 juil."
     private static let dayOnlyFormatter: DateFormatter = {
@@ -56,30 +65,24 @@ struct MoviePosterCell: View {
         return compact ? .headline : .title3
     }
 
-    private var resolvedAssetName: String? {
-        guard let name = screening.posterAssetName, UIImage(named: name, in: .main, compatibleWith: nil) != nil else {
-            return nil
-        }
-        return name
+    private var appLanguage: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .fr
+    }
+
+    private var showPassedBadge: Bool {
+        screening.hasPassed && !screening.isCanceled
     }
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.12, green: 0.14, blue: 0.22),
-                            Color(red: 0.05, green: 0.06, blue: 0.12),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .fill(posterBackdropFill)
                 .overlay {
-                    Image(systemName: "film.fill")
-                        .font(.system(size: compact ? 36 : 52, weight: .ultraLight))
-                        .foregroundStyle(.white.opacity(0.12))
+                    if !screening.usesTBDPlaceholderPoster {
+                        Image(systemName: "film.fill")
+                            .font(.system(size: compact ? 36 : 52, weight: .ultraLight))
+                            .foregroundStyle(.white.opacity(0.12))
+                    }
                 }
 
             posterImageLayer
@@ -105,14 +108,14 @@ struct MoviePosterCell: View {
             if showDateBadge {
                 Text(Self.dayOnlyFormatter.string(from: screening.startsAt))
                     .font(compact ? .caption2.weight(.bold) : .caption.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(screening.hasPassed ? Color.white.opacity(0.85) : .white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
                     .padding(.horizontal, compact ? 6 : 7)
                     .padding(.vertical, compact ? 4 : 5)
                     .background {
                         RoundedRectangle(cornerRadius: compact ? 6 : 8, style: .continuous)
-                            .fill(Color.black.opacity(0.78))
+                            .fill(Color.black.opacity(screening.hasPassed ? 0.55 : 0.78))
                             .overlay {
                                 RoundedRectangle(cornerRadius: compact ? 6 : 8, style: .continuous)
                                     .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
@@ -121,20 +124,44 @@ struct MoviePosterCell: View {
                     .padding(5)
             }
         }
+        .overlay(alignment: .topTrailing) {
+            if showPassedBadge {
+                Text(L10n.text("screening_passed", language: appLanguage))
+                    .font(compact ? .caption2.weight(.heavy) : .caption.weight(.heavy))
+                    .foregroundStyle(Color(white: 0.22))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, compact ? 6 : 7)
+                    .padding(.vertical, compact ? 4 : 5)
+                    .background {
+                        RoundedRectangle(cornerRadius: compact ? 6 : 8, style: .continuous)
+                            .fill(Color.white.opacity(0.92))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: compact ? 6 : 8, style: .continuous)
+                                    .strokeBorder(Color.black.opacity(0.12), lineWidth: 1)
+                            }
+                    }
+                    .padding(5)
+            }
+        }
         .overlay(alignment: .bottomTrailing) {
-            Group {
-                if let tap = onWatchListToggle {
-                    Button(action: tap) {
+            if showsWatchListControl {
+                Group {
+                    if let tap = onWatchListToggle {
+                        Button(action: tap) {
+                            watchListBookmarkLabel
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(isOnWatchList ? "Remove from watch list" : "Add to watch list")
+                    } else {
                         watchListBookmarkLabel
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(isOnWatchList ? "Remove from watch list" : "Add to watch list")
-                } else {
-                    watchListBookmarkLabel
                 }
             }
         }
         .modifier(PosterSizingModifier(posterWidth: posterWidth))
+        .opacity(screening.hasPassed ? 0.72 : 1)
+        .saturation(screening.hasPassed ? 0.45 : 1)
     }
 
     private var watchListBookmarkLabel: some View {
@@ -147,21 +174,27 @@ struct MoviePosterCell: View {
             .padding(6)
     }
 
-    @ViewBuilder
-    private var posterImageLayer: some View {
-        if let name = resolvedAssetName {
-            GeometryReader { geo in
-                Image(name)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    // Slight zoom trims embedded white borders/inconsistent source margins.
-                    .scaleEffect(1.04)
-                    .clipped()
-            }
-        } else {
-            Color.clear
+    private var posterBackdropFill: AnyShapeStyle {
+        if screening.usesTBDPlaceholderPoster {
+            return AnyShapeStyle(Color(red: 0.55, green: 0.57, blue: 0.60))
         }
+        return AnyShapeStyle(
+            LinearGradient(
+                colors: [
+                    Color(red: 0.12, green: 0.14, blue: 0.22),
+                    Color(red: 0.05, green: 0.06, blue: 0.12),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+    }
+
+    private var posterImageLayer: some View {
+        ScreeningPosterImage(
+            screening: screening,
+            posterBaseURLTemplate: program.publicConfig.posterBaseURL
+        )
     }
 }
 
@@ -183,9 +216,10 @@ private struct PosterSizingModifier: ViewModifier {
 
 #Preview {
     MoviePosterCell(
-        screening: FestivalProgramData.weeks[1].orderedScreenings[2],
+        screening: FestivalProgramBootstrap.weeks[1].orderedScreenings[2],
         compact: false
     )
+    .environmentObject(FestivalProgramStore.preview)
     .padding()
     .frame(width: 160)
 }

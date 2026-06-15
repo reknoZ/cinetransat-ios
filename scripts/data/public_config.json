@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "currentSeasonYear": 2026,
+  "websiteURL": "https://www.cinetransat.ch/",
+  "practicalInfoURL": "https://www.cinetransat.ch/infos-pratiques",
+  "contactEmail": "info@cinetransat.ch",
+  "facebookURL": "https://www.facebook.com/cinetransat",
+  "instagramURL": "https://www.instagram.com/cinetransat",
+  "posterBaseURL": "https://cinetransat-497ce.web.app/posters/{posterKey}.jpg"
+}

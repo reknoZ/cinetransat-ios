@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 2,
+  "seasonYear": 2025,
+  "updatedAt": "2026-05-26T16:53:25+02:00",
+  "weeks": [
+    {
+      "id": "2025-w1",
+      "label": "10–13 juillet",
+      "screenings": [
+        {
+          "id": "20250710",
+          "title": "Les Bronzés font du ski",
+          "startsAt": "2025-07-10T21:45:00+02:00",
+          "sunset": "2025-07-10T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Comédie culte des Bronzés coincés à la montagne.",
+          "posterKey": "les-bronzes-font-du-ski",
+          "runtimeMinutes": 90
+        },
+        {
+          "id": "20250711",
+          "title": "Le Vieux qui ne voulait pas fêter son anniversaire",
+          "startsAt": "2025-07-11T21:45:00+02:00",
+          "sunset": "2025-07-11T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Road movie absurde et tendre entre Suède et explosion.",
+          "posterKey": "le-vieux-qui-ne-voulait-pas-feter-son-anniversaire",
+          "runtimeMinutes": 114
+        },
+        {
+          "id": "20250712",
+          "title": "Shaun of the Dead",
+          "startsAt": "2025-07-12T21:45:00+02:00",
+          "sunset": "2025-07-12T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Zombie comedy britannique iconique.",
+          "posterKey": "shaun-of-the-dead",
+          "runtimeMinutes": 99
+        },
+        {
+          "id": "20250713",
+          "title": "Bottoms",
+          "startsAt": "2025-07-13T21:45:00+02:00",
+          "sunset": "2025-07-13T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Comédie déjantée de lycée et club de combat improbable.",
+          "posterKey": "bottoms",
+          "runtimeMinutes": 91
+        }
+      ]
+    },
+    {
+      "id": "2025-w2",
+      "label": "17–20 juillet",
+      "screenings": [
+        {
+          "id": "20250717",
+          "title": "E.T. l'extra-terrestre",
+          "startsAt": "2025-07-17T21:45:00+02:00",
+          "sunset": "2025-07-17T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Le classique Spielberg sur l'amitié et le retour à la maison.",
+          "posterKey": "e.t.-the-extraterrestial",
+          "runtimeMinutes": 115
+        },
+        {
+          "id": "20250718",
+          "title": "Les Mitchell contre les machines",
+          "startsAt": "2025-07-18T21:45:00+02:00",
+          "sunset": "2025-07-18T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Road trip familial face à une révolte des robots.",
+          "posterKey": "the-mitchells-vs-the-machines",
+          "runtimeMinutes": 114
+        },
+        {
+          "id": "20250719",
+          "title": "Soirée choréoké",
+          "startsAt": "2025-07-19T21:45:00+02:00",
+          "sunset": "2025-07-19T21:18:00+02:00",
+          "isCanceled": true,
+          "synopsis": "Soirée spéciale — annulée en raison des conditions.",
+          "posterKey": "soirée-choréoké"
+        },
+        {
+          "id": "20250720",
+          "title": "Au revoir là-haut",
+          "startsAt": "2025-07-20T21:45:00+02:00",
+          "sunset": "2025-07-20T21:18:00+02:00",
+          "isCanceled": true,
+          "synopsis": "Drame poétique post-Grande Guerre — séance annulée.",
+          "posterKey": "au-revoir-la-haut",
+          "runtimeMinutes": 117
+        }
+      ]
+    },
+    {
+      "id": "2025-w3",
+      "label": "24–27 juillet",
+      "screenings": [
+        {
+          "id": "20250724",
+          "title": "Marinette",
+          "startsAt": "2025-07-24T21:45:00+02:00",
+          "sunset": "2025-07-24T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Biopic sportif sur la footballeuse Marinette Pichon.",
+          "posterKey": "marinette",
+          "runtimeMinutes": 95
+        },
+        {
+          "id": "20250725",
+          "title": "Ninjababy",
+          "startsAt": "2025-07-25T21:45:00+02:00",
+          "sunset": "2025-07-25T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Comédie norvégienne d'une grossesse dessinée en ninja.",
+          "posterKey": "ninjababy",
+          "runtimeMinutes": 103
+        },
+        {
+          "id": "20250726",
+          "title": "Paddington 2",
+          "startsAt": "2025-07-26T21:45:00+02:00",
+          "sunset": "2025-07-26T21:18:00+02:00",
+          "isCanceled": true,
+          "synopsis": "Aventures de l'ours le plus aimable de Londres — séance annulée.",
+          "posterKey": "paddington-2",
+          "runtimeMinutes": 103
+        },
+        {
+          "id": "20250727",
+          "title": "Soirée courts-métrages",
+          "startsAt": "2025-07-27T21:45:00+02:00",
+          "sunset": "2025-07-27T21:18:00+02:00",
+          "isCanceled": true,
+          "synopsis": "Programme de courts — annulé.",
+          "posterKey": "soirée-court-métrages"
+        }
+      ]
+    },
+    {
+      "id": "2025-w4",
+      "label": "31 juillet – 3 août",
+      "screenings": [
+        {
+          "id": "20250731",
+          "title": "The Holiday",
+          "startsAt": "2025-07-31T21:45:00+02:00",
+          "sunset": "2025-07-31T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Romance hivernale entre Los Angeles et la campagne anglaise.",
+          "posterKey": "the-holiday",
+          "runtimeMinutes": 136
+        },
+        {
+          "id": "20250801",
+          "title": "Ma vie de Courgette",
+          "startsAt": "2025-08-01T21:45:00+02:00",
+          "sunset": "2025-08-01T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Stop-motion délicat sur l'enfance et la résilience.",
+          "posterKey": "ma-vie-de-courgette",
+          "runtimeMinutes": 66
+        },
+        {
+          "id": "20250802",
+          "title": "Terminator 2 : Le Jugement dernier",
+          "startsAt": "2025-08-02T21:45:00+02:00",
+          "sunset": "2025-08-02T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Science-fiction d'action avec Schwarzenegger.",
+          "posterKey": "terminator-2-judgment-day",
+          "runtimeMinutes": 137
+        },
+        {
+          "id": "20250803",
+          "title": "La Famille Asada",
+          "startsAt": "2025-08-03T21:45:00+02:00",
+          "sunset": "2025-08-03T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Drame familial japonais autour d'un restaurant et des liens.",
+          "posterKey": "la-famille-asada",
+          "runtimeMinutes": 127
+        }
+      ]
+    },
+    {
+      "id": "2025-w5",
+      "label": "7–10 août",
+      "screenings": [
+        {
+          "id": "20250807",
+          "title": "Puan",
+          "startsAt": "2025-08-07T21:45:00+02:00",
+          "sunset": "2025-08-07T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Comédie argentine sur l'université, la politique et l'amitié.",
+          "posterKey": "puan",
+          "runtimeMinutes": 110
+        },
+        {
+          "id": "20250808",
+          "title": "Lost in Translation",
+          "startsAt": "2025-08-08T21:45:00+02:00",
+          "sunset": "2025-08-08T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Rencontre fugace à Tokyo entre deux âmes en décalage.",
+          "posterKey": "lost-in-translation",
+          "runtimeMinutes": 102
+        },
+        {
+          "id": "20250809",
+          "title": "Pulp Fiction",
+          "startsAt": "2025-08-09T21:45:00+02:00",
+          "sunset": "2025-08-09T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Anthologie criminelle signée Tarantino.",
+          "posterKey": "pulp-fiction",
+          "runtimeMinutes": 154
+        },
+        {
+          "id": "20250810",
+          "title": "North by Northwest",
+          "startsAt": "2025-08-10T21:45:00+02:00",
+          "sunset": "2025-08-10T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Thriller hitchcockien à travers les États-Unis.",
+          "posterKey": "north-by-northwest",
+          "runtimeMinutes": 136
+        }
+      ]
+    },
+    {
+      "id": "2025-w6",
+      "label": "14–17 août",
+      "screenings": [
+        {
+          "id": "20250814",
+          "title": "Soirée rattrapage",
+          "startsAt": "2025-08-14T21:45:00+02:00",
+          "sunset": "2025-08-14T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Programme variable : films manqués ou invités de la saison.",
+          "posterKey": "paddington-2"
+        },
+        {
+          "id": "20250815",
+          "title": "Everything Everywhere All at Once",
+          "startsAt": "2025-08-15T21:45:00+02:00",
+          "sunset": "2025-08-15T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Multivers délirant et émouvant sur les choix de vie.",
+          "posterKey": "everything-everywhere-all-at-once",
+          "runtimeMinutes": 139
+        },
+        {
+          "id": "20250816",
+          "title": "Bãhubali : The Beginning",
+          "startsAt": "2025-08-16T21:45:00+02:00",
+          "sunset": "2025-08-16T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Épopée indienne grand spectacle.",
+          "posterKey": "bahubali-the-beginning",
+          "runtimeMinutes": 159,
+          "searchTitle": "Baahubali The Beginning"
+        },
+        {
+          "id": "20250817",
+          "title": "Le Fabuleux Destin d'Amélie Poulain",
+          "startsAt": "2025-08-17T21:45:00+02:00",
+          "sunset": "2025-08-17T21:18:00+02:00",
+          "isCanceled": false,
+          "synopsis": "Paris poétique et jeux du hasard.",
+          "posterKey": "le-fabuleux-destin-d'amelie-poulain",
+          "runtimeMinutes": 122
+        }
+      ]
+    }
+  ]
+}

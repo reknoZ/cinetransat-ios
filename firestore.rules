@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /seasons/{year} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /cinetransat/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

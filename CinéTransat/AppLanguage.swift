@@ -30,7 +30,7 @@ enum L10n {
     static func text(_ key: String, language: AppLanguage) -> String {
         let table: [String: (fr: String, en: String)] = [
             "tab_program": ("Programme", "Program"),
-            "tab_watchlist": ("Liste", "Watch List"),
+            "tab_watchlist": ("À voir", "Watchlist"),
             "tab_info": ("Infos", "Info"),
             "tab_festival": ("Festival", "Festival"),
             "tab_settings": ("Réglages", "Settings"),
@@ -38,12 +38,209 @@ enum L10n {
             "settings_language": ("Langue", "Language"),
             "settings_about_app": ("À propos de l'app", "About the app"),
             "settings_rate_app": ("Noter cette app", "Rate this app"),
+            "settings_export_data": ("Exporter les données", "Export data"),
+            "settings_export_error_title": ("Export impossible", "Export failed"),
             "settings_about_copy": ("CinéTransat est une app non officielle de démonstration pour consulter le programme, les infos utiles et votre liste de films.", "CinéTransat is an unofficial demo app to browse the program, practical info, and your movie list."),
             "settings_language_help": ("Le changement de langue s’applique immédiatement à l’interface principale.", "Language changes apply immediately to the main interface."),
             "about_title": ("À propos", "About"),
             "about_intro": ("Six semaines, quatre soirs par semaine : cinéma en plein air après le coucher du soleil.", "Six weeks, four nights each week: open-air cinema after sunset."),
-            "about_data_copy": ("Les données affichées reprennent un programme type (saison \(FestivalProgramData.demoYear)) pour le développement : remplacez-les par votre JSON ou votre CMS lorsque le programme officiel est prêt.", "The data shown is a sample schedule (season \(FestivalProgramData.demoYear)) for development: replace it with your JSON feed or CMS when the official schedule is ready."),
-            "about_poster_copy": ("Affiches : ajoutez au catalogue d’assets un jeu d’images par soirée, nommé exactement comme la date de la séance au format AAAAMMJJ (ex. 20250710). Tant qu’une image n’existe pas, l’app affiche le fond générique.", "Posters: add one image set per screening date in the asset catalog, named exactly as YYYYMMDD (for example, 20250710). Until a matching image exists, the app shows the generic placeholder tile."),
+            "about_data_copy": ("Le programme et les liens publics sont chargés depuis Firebase (Cloud Firestore) lorsque l’app est connectée ; une copie locale sert de secours hors ligne.", "The schedule and public links load from Firebase (Cloud Firestore) when online; a local copy is used as an offline fallback."),
+            "about_poster_copy": ("Affiches : une image par film (`posterKey`, dérivé du titre). Chaque séance peut pointer vers une autre affiche (rattrapage, report).", "Posters: one image per film (`posterKey`, from the title). Each screening can reference a different poster (catch-up, reschedule)."),
+            "screening_passed": ("Passé", "Passed"),
+            "program_season_picker": ("Choisir la saison", "Choose season"),
+            "program_season_picker_hint": ("Faites défiler pour choisir une autre saison", "Scroll to choose another season"),
+            "program_refresh_posters": ("Actualiser les affiches", "Refresh posters"),
+            "info_nav_title": ("Infos pratiques", "Practical info"),
+            "info_free_title": ("Projections gratuites", "Free screenings"),
+            "info_free_body": (
+                "Les projections de CinéTransat ont lieu dans le parc public de la Perle du Lac à Genève, et sont gratuites. Elles sont accessibles à tou.te.s et sans réservation !",
+                "CinéTransat screenings take place in the public park at La Perle du Lac in Geneva and are free of charge. Everyone is welcome and no reservation is required!"
+            ),
+            "info_schedule_title": ("Jours et horaires", "Days and times"),
+            "info_schedule_body": (
+                """
+                Projections du jeudi au dimanche, du 10 juillet au 17 août %@.
+
+                Début des films à la tombée de la nuit, entre 22h00 (mi-juillet) et 21h15 (fin août).
+
+                Buvette, location de transats et animations dès 19h00.
+
+                Fin de la soirée vers minuit.
+                """,
+                """
+                Screenings run Thursday through Sunday, from 10 July to 17 August %@.
+
+                Films start at nightfall, between 10:00 p.m. (mid-July) and 9:15 p.m. (late August).
+
+                Bar, deckchair rental, and activities from 7:00 p.m.
+
+                Evenings end around midnight.
+                """
+            ),
+            "info_age_title": ("Âge légal", "Age ratings"),
+            "info_age_body": (
+                """
+                L’âge légal pour le visionnage des films varie de 7 à 16 ans.
+
+                Merci de respecter ces consignes et de ne pas venir avec des enfants plus jeunes que l’âge légal indiqué. Des contrôles pourront être effectués par la Brigade des mineurs.
+                """,
+                """
+                Legal viewing ages for films range from 7 to 16.
+
+                Please follow these guidelines and do not bring children younger than the stated rating. Checks may be carried out by the juvenile brigade.
+                """
+            ),
+            "info_languages_title": ("Langues et sous-titres", "Languages and subtitles"),
+            "info_languages_body": (
+                """
+                Les films sont diffusés en version originale afin de préserver au mieux la qualité de l’œuvre et son empreinte culturelle. Genève étant une ville internationale, il nous tient à cœur de toucher tous les publics et communautés représentés.
+
+                De manière générale, les films en français sont sous-titrés en anglais ; tous les autres films sont sous-titrés en français.
+
+                Les langues et les sous-titres sont indiqués dans le programme.
+                """,
+                """
+                Films are shown in their original language to preserve the work and its cultural context. As Geneva is an international city, we aim to reach all audiences and communities represented.
+
+                In general, French-language films are subtitled in English; all other films are subtitled in French.
+
+                Languages and subtitles are listed in the programme.
+                """
+            ),
+            "info_bar_title": ("Buvette et pique-niques", "Bar and picnics"),
+            "info_bar_body": (
+                """
+                La buvette CinéTransat proposent des boissons uniquement. Paiement cash, carte et par Twint. Pas de vente de nourriture sur place. Vous pouvez amener vos propres boissons et pique-niques.
+
+                Attention, grillades interdites dans le parc.
+                """,
+                """
+                The CinéTransat bar serves drinks only. Payment by cash, card, or Twint. No food is sold on site. You may bring your own drinks and picnics.
+
+                Please note: barbecues are not allowed in the park.
+                """
+            ),
+            "info_deckchairs_title": ("Location de transats", "Deckchair rental"),
+            "info_deckchairs_body": (
+                """
+                Des transats sont disponibles à la location pour CHF 5.- tous les jours de projection dès 19h00. Paiement cash, carte ou par Twint. Attention, le nombre de transats à la location est limité.
+
+                Le placement dans le parc est libre. Prévoyez des vêtements chauds et une couverture, les fins de soirées peuvent être fraîches.
+                """,
+                """
+                Deckchairs are available to rent for CHF 5 on every screening day from 7:00 p.m. Payment by cash, card, or Twint. The number of deckchairs is limited.
+
+                Seating in the park is open. Bring warm clothes and a blanket; evenings can get cool.
+                """
+            ),
+            "info_transport_title": ("Accès et transports publics", "Getting there and public transport"),
+            "info_transport_body": (
+                """
+                Lieu : parc de la Perle du Lac, rue de Lausanne, 1202 Genève.
+
+                CinéTransat vous encourage à venir en transports publics, à pied ou à vélo.
+
+                En tram : ligne 15, arrêt Butini. En bus : lignes 1 et 25, arrêts De-Chateaubriand ou Perle du Lac. En train : ligne Lancy-Pont-Rouge – Coppet, arrêt Genève-Sécheron. En bateau : ligne M4, arrêt De-Chateaubriand. À pied : 15 min. depuis la gare Cornavin ou 5 min. depuis les Bains des Pâquis.
+
+                Attention ! Certains films peuvent se terminer après le départ des derniers bus ou trams.
+
+                Pour l’accès des personnes à mobilité réduite, contactez-nous sur info@cinetransat.ch. Le chemin de la partie basse du parc est large, plat et praticable. Certains chemins intérieurs présentent des pentes de 10–12 %. Il n’y a malheureusement pas de places de stationnement dédiées à proximité directe, mais une dépose-reprise vers le Restaurant de la Perle-du-lac est possible.
+                """,
+                """
+                Venue: La Perle du Lac park, rue de Lausanne, 1202 Geneva.
+
+                CinéTransat encourages you to come by public transport, on foot, or by bike.
+
+                Tram: line 15, Butini stop. Bus: lines 1 and 25, De-Chateaubriand or Perle du Lac stops. Train: Lancy-Pont-Rouge – Coppet line, Genève-Sécheron stop. Boat: M4 line, De-Chateaubriand stop. On foot: 15 min from Cornavin station or 5 min from les Bains des Pâquis.
+
+                Please note: some films may end after the last bus or tram.
+
+                For wheelchair access, contact us at info@cinetransat.ch. The path along the lower part of the park is wide, flat, and passable. Some inner paths have 10–12% slopes. There are no dedicated parking spaces right next to the site, but drop-off near the Restaurant de la Perle du Lac is possible.
+                """
+            ),
+            "info_cancellations_title": ("Annulations", "Cancellations"),
+            "info_cancellations_body": (
+                """
+                Projections annulées en cas de pluie ou de fort vent. Décision au plus tard le jour même de la projection à 19h30.
+
+                Annonce sur la page d’accueil de ce site et sur notre page Facebook ou Instagram.
+                """,
+                """
+                Screenings are cancelled in case of rain or strong wind. The decision is made no later than 7:30 p.m. on the day of the screening.
+
+                Updates are posted on the homepage of this website and on our Facebook or Instagram pages.
+                """
+            ),
+            "info_toilets_title": ("Toilettes", "Toilets"),
+            "info_toilets_body": (
+                "Toilettes sèches à disposition sur le site de CinéTransat et WC publics situés au bas du parc, à 100 m et à 300 m avec accès chaises roulantes.",
+                "Dry toilets are available on the CinéTransat site, and public restrooms at the bottom of the park, 100 m and 300 m away, with wheelchair access."
+            ),
+            "info_smoking_title": ("Fumée", "Smoking"),
+            "info_smoking_body": (
+                "Merci de ne pas jeter vos mégots dans l’herbe afin de nous aider à laisser le parc propre après les séances. Par égard pour vos voisin.e.s de pelouse, nous vous remercions de bien vouloir vous abstenir de fumer pendant le film.",
+                "Please do not throw cigarette butts in the grass so we can keep the park clean after screenings. Out of consideration for others on the lawn, please refrain from smoking during the film."
+            ),
+            "info_waste_title": ("Déchets", "Waste"),
+            "info_waste_body": (
+                "Des zones de tri sont à disposition dans le parc. Merci de les utiliser après votre pique-nique pour ne rien laisser sur place à votre départ.",
+                "Recycling areas are available in the park. Please use them after your picnic and take nothing away when you leave."
+            ),
+            "info_dogs_title": ("Chiens", "Dogs"),
+            "info_dogs_body": (
+                "S’il peut rester calme pendant tout le film et ne pas déranger la projection, votre animal de compagnie peut participer à la fête. Il doit être tenue en laisse. Merci pour votre compréhension.",
+                "If your pet can stay calm for the whole film and not disturb the screening, they are welcome. Dogs must be kept on a leash. Thank you for your understanding."
+            ),
+            "info_bikes_title": ("Vélos", "Bicycles"),
+            "info_bikes_body": (
+                """
+                Accès à vélo possible.
+
+                Merci de ne pas attacher les vélos aux vaubans de la manifestation.
+                """,
+                """
+                The site is accessible by bicycle.
+
+                Please do not lock bikes to the festival barriers.
+                """
+            ),
+            "info_accessibility_title": ("Accessibilité", "Accessibility"),
+            "settings_notifications": ("Alertes annulations", "Cancellation alerts"),
+            "settings_notifications_help": (
+                "Recevez une notification si une séance est annulée (pluie ou vent), même lorsque l’app est fermée.",
+                "Get notified when a screening is canceled (rain or wind), even when the app is closed."
+            ),
+            "settings_notifications_enable": ("Activer les notifications", "Enable notifications"),
+            "settings_notifications_on": ("Notifications activées", "Notifications on"),
+            "settings_notifications_denied": (
+                "Autorisez les notifications dans Réglages iOS pour recevoir les alertes.",
+                "Allow notifications in iOS Settings to receive alerts."
+            ),
+            "notification_cancel_title": ("Séance annulée", "Screening canceled"),
+            "notification_cancel_body": (
+                "%@ — %@. Séance annulée (intempéries).",
+                "%@ — %@. Canceled due to weather."
+            ),
+            "info_accessibility_body": (
+                """
+                CinéTransat est un cinéma éphémère, en extérieur, dans un parc ; les mesures d’accessibilité sont donc plus compliquées à mettre en place que dans une salle de cinéma.
+
+                L’accès au parc par le bas de la pelouse est accessible aux personnes à mobilité réduite. Les films n’ont pas d’audio description ou de sous-titres pour malentendant (CC). Ils sont sous-titrés en français pour les films étrangers et en anglais pour les films francophones.
+
+                Les WC avec accès chaise roulante sont en bas du parc, à 300 m vers le restaurant de la Perle du Lac. Les personnes à mobilité réduite peuvent nous contacter si elles ont besoin d’une zone dégagée en bas de la pelouse, d’assistance ou d’un transat mis de côté.
+
+                N’hésitez pas à nous contacter en cas de question ou de besoin particulier et nous ferons au mieux pour vous accommoder : info@cinetransat.ch
+                """,
+                """
+                CinéTransat is a temporary outdoor cinema in a park, so accessibility measures are harder to provide than in a regular theatre.
+
+                The lower lawn entrance is accessible for people with reduced mobility. Films do not have audio description or closed captions (CC). Foreign-language films are subtitled in French; French-language films are subtitled in English.
+
+                Wheelchair-accessible restrooms are at the bottom of the park, 300 m towards the Restaurant de la Perle du Lac. Visitors with reduced mobility can contact us for a cleared area on the lower lawn, assistance, or a reserved deckchair.
+
+                For any questions or specific needs, contact us and we will do our best to help: info@cinetransat.ch
+                """
+            ),
         ]
         let pair = table[key] ?? (fr: key, en: key)
         switch language {
@@ -54,12 +251,7 @@ enum L10n {
 }
 
 func localizedProgramTitle(year: Int, language: AppLanguage) -> String {
-    switch language {
-    case .fr:
-        return "Programme \(year)"
-    case .en:
-        return "Program \(year)"
-    }
+    "\(year)"
 }
 
 func localizedWeekLabel(number: Int, weekLabel: String, language: AppLanguage) -> String {
