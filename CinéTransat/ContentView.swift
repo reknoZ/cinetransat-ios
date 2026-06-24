@@ -21,7 +21,8 @@ struct ContentView: View {
     @State private var selectedTab: AppTab
 
     init(initialTab: AppTab = .program) {
-        _selectedTab = State(initialValue: initialTab)
+        let tab = Self.isFestivalTabVisible ? initialTab : (initialTab == .festival ? .program : initialTab)
+        _selectedTab = State(initialValue: tab)
     }
 
     private var appLanguage: AppLanguage {

@@ -65,7 +65,8 @@ struct Screening: Identifiable, Hashable {
         self.id = id
         self.title = title
         self.sunsetAt = sunsetAt
-        self.startsAt = startsAt ?? Self.defaultStartTime(for: id, sunsetAt: sunsetAt)
+        let fallbackStart = startsAt ?? Self.defaultStartTime(for: id, sunsetAt: sunsetAt)
+        self.startsAt = Self.canonicalStartTime(for: id, fallback: fallbackStart)
         self.isCanceled = isCanceled
         self.synopsis = synopsis
         self.synopsisEn = synopsisEn
@@ -77,7 +78,31 @@ struct Screening: Identifiable, Hashable {
         self.posterKey = PosterCatalog.stem(forDisplayTitle: title, searchTitle: searchTitle, explicit: posterKey)
     }
 
+    /// Official 2026 projection starts (Europe/Zurich). Sync with `PROJECTION_START_2026` in `scripts/generate_seed_data.py`.
+    private static let projectionStartByScreeningID: [String: (hour: Int, minute: Int)] = [
+        "20260709": (21, 44), "20260710": (21, 43), "20260711": (21, 43), "20260712": (21, 42),
+        "20260716": (21, 39), "20260717": (21, 38), "20260718": (21, 37), "20260719": (21, 0),
+        "20260723": (21, 31), "20260724": (21, 30), "20260725": (21, 29), "20260726": (21, 28),
+        "20260730": (21, 0), "20260731": (21, 21), "20260801": (21, 20), "20260802": (21, 19),
+        "20260806": (21, 13), "20260807": (21, 11), "20260808": (21, 10), "20260809": (21, 8),
+        "20260813": (21, 1), "20260814": (21, 0), "20260815": (20, 58), "20260816": (20, 56),
+    ]
+
+    static func canonicalStartTime(for id: String, fallback: Date) -> Date {
+        projectionStartDate(for: id) ?? fallback
+    }
+
+    private static func projectionStartDate(for id: String) -> Date? {
+        guard let start = projectionStartByScreeningID[id],
+              let day = dayKeyFormatter.date(from: id) else { return nil }
+        var dc = FestivalCalendar.current.dateComponents([.year, .month, .day], from: day)
+        dc.hour = start.hour
+        dc.minute = start.minute
+        return FestivalCalendar.current.date(from: dc)
+    }
+
     private static func defaultStartTime(for id: String, sunsetAt: Date) -> Date {
+        if let projected = projectionStartDate(for: id) { return projected }
         guard let day = dayKeyFormatter.date(from: id) else {
             return sunsetAt
         }

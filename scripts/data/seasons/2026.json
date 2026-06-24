@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "seasonYear": 2026,
-  "updatedAt": "2026-06-23T00:14:23+02:00",
+  "updatedAt": "2026-06-24T23:34:52+02:00",
   "weeks": [
     {
       "id": "2026-w1",
@@ -10,7 +10,7 @@
         {
           "id": "20260709",
           "title": "Back to the Future",
-          "startsAt": "2026-07-09T21:45:00+02:00",
+          "startsAt": "2026-07-09T21:44:00+02:00",
           "sunset": "2026-07-09T21:18:00+02:00",
           "isCanceled": false,
           "synopsis": "Marty, propulsé en 1955 via une DeLorean, doit aider ses parents à se draguer pour ne pas disparaître du futur. Là où il va, il n'y a pas besoin de routes !",
@@ -22,7 +22,7 @@
         {
           "id": "20260710",
           "title": "La Famille Bélier",
-          "startsAt": "2026-07-10T21:45:00+02:00",
+          "startsAt": "2026-07-10T21:43:00+02:00",
           "sunset": "2026-07-10T21:17:00+02:00",
           "isCanceled": false,
           "synopsis": "Paula, seule entendante d'une famille sourde, découvre sa voix et doit choisir entre chanter du Michel Sardou ou rester le pilier de sa famille.",
@@ -35,7 +35,7 @@
         {
           "id": "20260711",
           "title": "Billy Elliot",
-          "startsAt": "2026-07-11T21:45:00+02:00",
+          "startsAt": "2026-07-11T21:43:00+02:00",
           "sunset": "2026-07-11T21:16:00+02:00",
           "isCanceled": false,
           "synopsis": "Un gamin fils de mineur découvre la danse et rêve de ballet plutôt que de gants de boxe.",
@@ -48,7 +48,7 @@
         {
           "id": "20260712",
           "title": "Flow",
-          "startsAt": "2026-07-12T21:45:00+02:00",
+          "startsAt": "2026-07-12T21:42:00+02:00",
           "sunset": "2026-07-12T21:15:00+02:00",
           "isCanceled": false,
           "synopsis": "Un chat se réveille dans un monde submergé et embarque sur un bateau avec d'autres animaux pour survivre à un déluge silencieux. L'Arche sans Noé.",
@@ -67,7 +67,7 @@
         {
           "id": "20260716",
           "title": "Sauvages",
-          "startsAt": "2026-07-16T21:45:00+02:00",
+          "startsAt": "2026-07-16T21:39:00+02:00",
           "sunset": "2026-07-16T21:12:00+02:00",
           "isCanceled": false,
           "synopsis": "À Bornéo, une ado et un bébé orang-outan affrontent la déforestation et découvrent leur lien à la nature et aux autres.",
@@ -80,7 +80,7 @@
         {
           "id": "20260717",
           "title": "Love and Other Disasters",
-          "startsAt": "2026-07-17T21:45:00+02:00",
+          "startsAt": "2026-07-17T21:38:00+02:00",
           "sunset": "2026-07-17T21:11:00+02:00",
           "isCanceled": false,
           "synopsis": "Une assistante chez Vogue surestime son gaydar. Son meilleur ami homosexuel a un coup de foudre. S'ensuivent quiproquos romantiques et autres petits désastres…",
@@ -93,7 +93,7 @@
         {
           "id": "20260718",
           "title": "Paddington",
-          "startsAt": "2026-07-18T21:45:00+02:00",
+          "startsAt": "2026-07-18T21:37:00+02:00",
           "sunset": "2026-07-18T21:10:00+02:00",
           "isCanceled": false,
           "synopsis": "Un ours péruvien débarque à Londres avec son chapeau, son amour de la marmelade et… sa maladresse. La patience de sa famille adoptive est mise à rude épreuve. Mais qui peut en vouloir à un ourson si poli ?",
@@ -106,7 +106,7 @@
         {
           "id": "20260719",
           "title": "Soirées courts-métrages",
-          "startsAt": "2026-07-19T21:45:00+02:00",
+          "startsAt": "2026-07-19T21:00:00+02:00",
           "sunset": "2026-07-19T21:08:00+02:00",
           "isCanceled": false,
           "synopsis": "Sélection de courts métrages suisses et internationaux.",
@@ -123,7 +123,7 @@
         {
           "id": "20260723",
           "title": "I Am Not a Witch",
-          "startsAt": "2026-07-23T21:45:00+02:00",
+          "startsAt": "2026-07-23T21:31:00+02:00",
           "sunset": "2026-07-23T21:04:00+02:00",
           "isCanceled": false,
           "synopsis": "Une fillette est accusée de sorcellerie et envoyée dans un camp, où elle doit survivre à un système absurde et cruel.",
@@ -135,7 +135,7 @@
         {
           "id": "20260724",
           "title": "Singin' in the Rain",
-          "startsAt": "2026-07-24T21:45:00+02:00",
+          "startsAt": "2026-07-24T21:30:00+02:00",
           "sunset": "2026-07-24T21:02:00+02:00",
           "isCanceled": false,
           "synopsis": "Hollywood passe du muet au parlant, Gene Kelly danse sous la pluie, une starlette chante faux.",
@@ -147,7 +147,7 @@
         {
           "id": "20260725",
           "title": "Wadjda",
-          "startsAt": "2026-07-25T21:45:00+02:00",
+          "startsAt": "2026-07-25T21:29:00+02:00",
           "sunset": "2026-07-25T21:01:00+02:00",
           "isCanceled": false,
           "synopsis": "Une fillette saoudienne rêve de vélo interdit et défie les règles. Roule, Wadjda, roule !",
@@ -159,7 +159,7 @@
         {
           "id": "20260726",
           "title": "The Girl Who Leapt Through Time",
-          "startsAt": "2026-07-26T21:45:00+02:00",
+          "startsAt": "2026-07-26T21:28:00+02:00",
           "sunset": "2026-07-26T21:00:00+02:00",
           "isCanceled": false,
           "synopsis": "Une ado découvre qu'elle peut remonter le temps. Qu'est-ce qui pourrait mal tourner ?",
@@ -177,7 +177,7 @@
         {
           "id": "20260730",
           "title": "CHOREOKE",
-          "startsAt": "2026-07-30T21:45:00+02:00",
+          "startsAt": "2026-07-30T21:00:00+02:00",
           "sunset": "2026-07-30T20:54:00+02:00",
           "isCanceled": false,
           "synopsis": "Chantez devant l'écran : tubes français et internationaux sous les étoiles.",
@@ -187,7 +187,7 @@
         {
           "id": "20260731",
           "title": "Jumanji: Welcome to the Jungle",
-          "startsAt": "2026-07-31T21:45:00+02:00",
+          "startsAt": "2026-07-31T21:21:00+02:00",
           "sunset": "2026-07-31T20:52:00+02:00",
           "isCanceled": false,
           "synopsis": "Quatre ados coincés dans un jeu vidéo maudit doivent survivre dans une jungle pleine de pièges explosifs et de clichés ringards.",
@@ -199,7 +199,7 @@
         {
           "id": "20260801",
           "title": "Bon Schuur Ticino (Ciao-ciao bourbine)",
-          "startsAt": "2026-08-01T21:45:00+02:00",
+          "startsAt": "2026-08-01T21:20:00+02:00",
           "sunset": "2026-08-01T20:50:00+02:00",
           "isCanceled": false,
           "synopsis": "En Suisse, une initiative populaire absurde déclenche un chaos national entre régions qui ne se comprennent plus du tout. Grüezi !",
@@ -212,7 +212,7 @@
         {
           "id": "20260802",
           "title": "Portrait de la jeune fille en feu",
-          "startsAt": "2026-08-02T21:45:00+02:00",
+          "startsAt": "2026-08-02T21:19:00+02:00",
           "sunset": "2026-08-02T20:49:00+02:00",
           "isCanceled": false,
           "synopsis": "Une peintre doit réaliser le portrait d'une jeune femme, alors qu'une passion interdite naît progressivement. Bravo les lesbiennes !",
@@ -231,7 +231,7 @@
         {
           "id": "20260806",
           "title": "BlacKkKlansman",
-          "startsAt": "2026-08-06T21:45:00+02:00",
+          "startsAt": "2026-08-06T21:13:00+02:00",
           "sunset": "2026-08-06T20:42:00+02:00",
           "isCanceled": false,
           "synopsis": "Dans les années 70, un policier noir infiltre le Ku Klux Klan par téléphone. Il va avoir besoin d'une doublure pour aller sur le terrain…",
@@ -244,7 +244,7 @@
         {
           "id": "20260807",
           "title": "Much Ado About Nothing",
-          "startsAt": "2026-08-07T21:45:00+02:00",
+          "startsAt": "2026-08-07T21:11:00+02:00",
           "sunset": "2026-08-07T20:40:00+02:00",
           "isCanceled": false,
           "synopsis": "Deux couples se cherchent, se provoquent et s'aiment dans une comédie shakespearienne de malentendus digne d'une telenovela.",
@@ -256,7 +256,7 @@
         {
           "id": "20260808",
           "title": "The Mummy",
-          "startsAt": "2026-08-08T21:45:00+02:00",
+          "startsAt": "2026-08-08T21:10:00+02:00",
           "sunset": "2026-08-08T20:39:00+02:00",
           "isCanceled": false,
           "synopsis": "Un mercenaire au brushing impeccable et une bibliothécaire maladroite ont réveillé la momie d'Imhotep. Il est pas très content.",
@@ -269,7 +269,7 @@
         {
           "id": "20260809",
           "title": "Lo que quisimos ser",
-          "startsAt": "2026-08-09T21:45:00+02:00",
+          "startsAt": "2026-08-09T21:08:00+02:00",
           "sunset": "2026-08-09T20:37:00+02:00",
           "isCanceled": false,
           "synopsis": "Deux inconnus inventent une histoire d'amour pour échapper à leur réalité, et finissent par brouiller fiction et sentiments.",
@@ -287,7 +287,7 @@
         {
           "id": "20260813",
           "title": "Ocean's Eleven",
-          "startsAt": "2026-08-13T21:45:00+02:00",
+          "startsAt": "2026-08-13T21:01:00+02:00",
           "sunset": "2026-08-13T20:30:00+02:00",
           "isCanceled": false,
           "synopsis": "Un braquage de casino ultra stylé réunit onze pros du crime pour un casse millimétré au cœur de Las Vegas sur fond de jazz funky.",
@@ -300,7 +300,7 @@
         {
           "id": "20260814",
           "title": "Everything Everywhere All at Once",
-          "startsAt": "2026-08-14T21:45:00+02:00",
+          "startsAt": "2026-08-14T21:00:00+02:00",
           "sunset": "2026-08-14T20:28:00+02:00",
           "isCanceled": false,
           "synopsis": "Une dame fait sa compta, puis sauve le multivers et sa relation dysfonctionnelle avec sa famille à travers plusieurs réalités parallèles. Kung-fu, bagel existentiel : c'est n'importe quoi, et c'est magnifique.",
@@ -312,7 +312,7 @@
         {
           "id": "20260815",
           "title": "Baahubali 2: The Conclusion",
-          "startsAt": "2026-08-15T21:45:00+02:00",
+          "startsAt": "2026-08-15T20:58:00+02:00",
           "sunset": "2026-08-15T20:26:00+02:00",
           "isCanceled": false,
           "synopsis": "Un héros très balèze découvre son passé royal et lance une guerre épique pour reprendre un trône volé et venger sa lignée.",
@@ -325,7 +325,7 @@
         {
           "id": "20260816",
           "title": "Intouchables",
-          "startsAt": "2026-08-16T21:45:00+02:00",
+          "startsAt": "2026-08-16T20:56:00+02:00",
           "sunset": "2026-08-16T20:24:00+02:00",
           "isCanceled": false,
           "synopsis": "Un aristocrate tétraplégique engage un aide-soignant venu de banlieue qui lui fait découvrir (entre autres) le disco.",

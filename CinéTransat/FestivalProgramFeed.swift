@@ -5,6 +5,10 @@
 
 import Foundation
 
+#if canImport(FirebaseFirestore)
+import FirebaseFirestore
+#endif
+
 struct FestivalProgramDocument: Codable {
     let schemaVersion: Int
     let seasonYear: Int
@@ -61,6 +65,16 @@ enum FestivalProgramFeedDecoder {
         return (seasonYear: doc.seasonYear, weeks: weeks)
     }
 
+    /// Firestore snapshot payloads may contain `Timestamp` values — `JSONSerialization` traps on those.
+    static func decodeProgram(from firestoreData: [String: Any]) throws -> (seasonYear: Int, weeks: [FestivalWeek]) {
+        let sanitized = jsonSafeFirestoreValue(firestoreData)
+        guard let object = sanitized as? [String: Any] else {
+            throw FestivalProgramFeedError.invalidDocument
+        }
+        let payload = try JSONSerialization.data(withJSONObject: object)
+        return try decodeProgram(from: payload)
+    }
+
     /// Bundled `BundledSeason-{year}.json` in the app target (App Store screenshots, offline fallback).
     static func loadBundledSeason(year: Int) -> (seasonYear: Int, weeks: [FestivalWeek])? {
         guard let url = Bundle.main.url(forResource: "BundledSeason-\(year)", withExtension: "json"),
@@ -106,15 +120,37 @@ enum FestivalProgramFeedDecoder {
     private static func parseDate(_ string: String) -> Date? {
         iso8601.date(from: string) ?? iso8601NoFraction.date(from: string)
     }
+
+    private static func jsonSafeFirestoreValue(_ value: Any) -> Any {
+        #if canImport(FirebaseFirestore)
+        if let timestamp = value as? Timestamp {
+            return isoString(from: timestamp.dateValue())
+        }
+        #endif
+        if let dict = value as? [String: Any] {
+            return dict.mapValues { jsonSafeFirestoreValue($0) }
+        }
+        if let array = value as? [Any] {
+            return array.map { jsonSafeFirestoreValue($0) }
+        }
+        return value
+    }
+
+    private static func isoString(from date: Date) -> String {
+        iso8601NoFraction.string(from: date)
+    }
 }
 
 enum FestivalProgramFeedError: LocalizedError {
     case invalidDate(String)
+    case invalidDocument
 
     var errorDescription: String? {
         switch self {
         case .invalidDate(let id):
             return "Invalid ISO-8601 date for screening \(id)."
+        case .invalidDocument:
+            return "Invalid Firestore programme document."
         }
     }
 }

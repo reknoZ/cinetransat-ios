@@ -19,13 +19,20 @@ struct SettingsView: View {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
     }
 
+    private var languageBinding: Binding<AppLanguage> {
+        Binding(
+            get: { AppLanguage(rawValue: appLanguageRaw) ?? .fr },
+            set: { appLanguageRaw = $0.rawValue }
+        )
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section(L10n.text("settings_language", language: appLanguage)) {
-                    Picker("", selection: $appLanguageRaw) {
+                    Picker("", selection: languageBinding) {
                         ForEach(AppLanguage.allCases) { language in
-                            Text(language.displayName).tag(language.rawValue)
+                            Text(language.displayName).tag(language)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -172,4 +179,6 @@ private enum AppMetadata {
 
 #Preview {
     SettingsView()
+        .environmentObject(FestivalProgramStore.preview)
+        .environmentObject(WatchListStore())
 }

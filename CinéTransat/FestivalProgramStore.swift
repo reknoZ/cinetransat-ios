@@ -277,8 +277,7 @@ final class FestivalProgramStore: ObservableObject {
 
     private func applyProgramDocument(_ data: [String: Any], source: DataSource, expectedYear: Int) {
         do {
-            let payload = try JSONSerialization.data(withJSONObject: data)
-            let decoded = try FestivalProgramFeedDecoder.decodeProgram(from: payload)
+            let decoded = try FestivalProgramFeedDecoder.decodeProgram(from: data)
 
             #if canImport(FirebaseFirestore)
             if source == .firestore {

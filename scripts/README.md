@@ -43,6 +43,15 @@ python3 scripts/seed_2026_program.py --generate-only
 
 Keeps `seasons/2025.json` if it already exists and uploads **all** `seasons/*.json`.
 
+### Patch projection times only (Firestore)
+
+To update `startsAt` on an existing `seasons/2026` document without re-uploading the full programme:
+
+```bash
+./scripts/patch_projection_times.sh --dry-run   # preview changes
+./scripts/patch_projection_times.sh             # write seasons/2026 only
+```
+
 Or step by step:
 
 ```bash
