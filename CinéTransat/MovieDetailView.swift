@@ -57,22 +57,6 @@ struct MovieDetailView: View {
         return { watchList.toggle(screening, mayAdd: mayAdd) }
     }
 
-    private static let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_CH")
-        f.dateStyle = .full
-        f.timeStyle = .none
-        return f
-    }()
-
-    private static let timeFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_CH")
-        f.dateStyle = .none
-        f.timeStyle = .short
-        return f
-    }()
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -87,7 +71,7 @@ struct MovieDetailView: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Film précédent")
+                        .accessibilityLabel(L10n.text("detail_previous_film", language: appLanguage))
                     } else {
                         Image(systemName: "chevron.left")
                             .font(.title2.weight(.semibold))
@@ -116,7 +100,7 @@ struct MovieDetailView: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Film suivant")
+                        .accessibilityLabel(L10n.text("detail_next_film", language: appLanguage))
                     } else {
                         Image(systemName: "chevron.right")
                             .font(.title2.weight(.semibold))
@@ -129,7 +113,7 @@ struct MovieDetailView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     if screening.isCanceled {
-                        Label("Séance annulée", systemImage: "exclamationmark.triangle.fill")
+                        Label(L10n.text("detail_screening_canceled", language: appLanguage), systemImage: "exclamationmark.triangle.fill")
                             .font(.headline)
                             .foregroundStyle(.orange)
                     } else if screening.hasPassed {
@@ -138,55 +122,29 @@ struct MovieDetailView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Text(Self.dayFormatter.string(from: screening.startsAt))
+                    Text(FestivalDateFormatters.screeningDay(screening.startsAt, language: appLanguage))
                         .font(.title3)
                         .foregroundStyle(screening.hasPassed ? .tertiary : .secondary)
 
-                    LabeledContent("Coucher du soleil (indicatif)") {
-                        Text(Self.timeFormatter.string(from: screening.sunsetAt))
-                    }
-                    .font(.body)
-
-                    LabeledContent("Début de la projection") {
-                        Text(Self.timeFormatter.string(from: screening.startsAt))
-                    }
-                    .font(.body)
-
-                    if let m = screening.runtimeMinutes {
-                        LabeledContent("Durée") {
-                            Text("\(m) min")
-                        }
-                        .font(.body)
-                        .foregroundStyle(m == 0 ? .secondary : .primary)
-                    } else {
-                        LabeledContent("Durée") {
-                            Text("Variable")
-                        }
-                        .foregroundStyle(.secondary)
-                    }
+                    ScreeningFactsGrid(screening: screening, language: appLanguage)
                 }
 
-                Text(screening.synopsis)
+                Text(screening.localizedSynopsis(language: appLanguage))
                     .font(.body)
                     .foregroundStyle(.primary)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Références")
-                        .font(.headline)
+                HStack(spacing: 20) {
                     if screening.externalSearchLinksEnabled {
                         Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
-                            Label("Recherche sur IMDb", systemImage: "globe")
+                            Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
                         }
                         Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
-                            Label("Recherche sur Allociné", systemImage: "popcorn.fill")
+                            Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
                         }
-                        Text("Les liens ouvrent Safari avec une recherche préremplie.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
                     } else {
-                        Label("Recherche sur IMDb", systemImage: "globe")
+                        Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
                             .foregroundStyle(.secondary)
-                        Label("Recherche sur Allociné", systemImage: "popcorn.fill")
+                        Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -200,7 +158,104 @@ struct MovieDetailView: View {
     }
 }
 
-#Preview {
+// MARK: - Screening facts grid
+
+private struct ScreeningFactsGrid: View {
+    let screening: Screening
+    let language: AppLanguage
+
+    private struct Column: Identifiable {
+        let id: Int
+        let symbol: String
+        let label: String
+        let value: String
+        let muted: Bool
+    }
+
+    private var columns: [Column] {
+        let durationValue: String
+        let durationMuted: Bool
+        if let minutes = screening.runtimeMinutes {
+            durationValue = minutes == 0 ? "—" : "\(minutes) min"
+            durationMuted = minutes == 0
+        } else {
+            durationValue = L10n.text("detail_duration_variable", language: language)
+            durationMuted = true
+        }
+
+        return [
+            Column(
+                id: 0,
+                symbol: "sunset.fill",
+                label: L10n.text("detail_sunset", language: language),
+                value: FestivalDateFormatters.screeningTime(screening.sunsetAt, language: language),
+                muted: false
+            ),
+            Column(
+                id: 1,
+                symbol: "popcorn",
+                label: L10n.text("detail_start", language: language),
+                value: FestivalDateFormatters.screeningTime(screening.startsAt, language: language),
+                muted: screening.hasPassed
+            ),
+            Column(
+                id: 2,
+                symbol: "hourglass",
+                label: L10n.text("detail_duration", language: language),
+                value: durationValue,
+                muted: durationMuted
+            ),
+            Column(
+                id: 3,
+                symbol: "hand.raised.fill",
+                label: L10n.text("detail_legal_age", language: language),
+                value: screening.legalAge.map { "\($0)+" } ?? "—",
+                muted: screening.legalAge == nil
+            ),
+            Column(
+                id: 4,
+                symbol: "figure.and.child.holdinghands",
+                label: L10n.text("detail_recommended_age", language: language),
+                value: screening.recommendedAge.map { "\($0)+" } ?? "—",
+                muted: screening.recommendedAge == nil
+            ),
+            Column(
+                id: 5,
+                symbol: "calendar",
+                label: L10n.text("detail_film_year", language: language),
+                value: screening.releaseYear.map { "\($0)" } ?? "—",
+                muted: screening.releaseYear == nil
+            ),
+        ]
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            ForEach(columns) { column in
+                VStack(spacing: 6) {
+                    Image(systemName: column.symbol)
+                        .font(.subheadline.weight(.semibold))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
+                        .frame(height: 20)
+
+                    Text(column.value)
+                        .font(.caption.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                        .foregroundStyle(column.muted ? .secondary : .primary)
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(column.label), \(column.value)")
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+#Preview("Movie detail — facts row") {
     NavigationStack {
         MovieDetailView(screening: FestivalProgramBootstrap.weeks[0].orderedScreenings[0])
     }

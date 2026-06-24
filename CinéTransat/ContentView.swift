@@ -80,18 +80,12 @@ private struct AboutFestivalView: View {
                         .font(.largeTitle.weight(.bold))
                     Text(L10n.text("about_intro", language: appLanguage))
                         .font(.body)
-                    Text(L10n.text("about_data_copy", language: appLanguage))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Text(L10n.text("about_poster_copy", language: appLanguage))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
                 }
                 .padding()
                 .frame(maxWidth: 640)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .navigationTitle(L10n.text("about_title", language: appLanguage))
+            .navigationTitle(L10n.text("tab_festival", language: appLanguage))
         }
     }
 }

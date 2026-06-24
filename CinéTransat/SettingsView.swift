@@ -4,7 +4,7 @@
 //
 
 import SwiftUI
-import UIKit
+import MessageUI
 
 struct SettingsView: View {
     @EnvironmentObject private var program: FestivalProgramStore
@@ -12,9 +12,8 @@ struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
-    @State private var exportFileURL: URL?
-    @State private var showShareSheet = false
-    @State private var exportErrorMessage: String?
+    @State private var showFeedbackMail = false
+    @State private var showFeedbackUnavailableAlert = false
 
     private var appLanguage: AppLanguage {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
@@ -63,23 +62,32 @@ struct SettingsView: View {
                         Text(L10n.text("settings_notifications_help", language: appLanguage))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Text(
-                            "Topic: \(CancellationNotificationManager.cancellationTopic(seasonYear: program.publicConfig.currentSeasonYear)) — edit Firestore seasons/\(program.publicConfig.currentSeasonYear) only.",
-                            comment: "FCM topic hint for debugging"
-                        )
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        if let err = notificationManager.lastTopicSubscribeError {
-                            Text(err)
+                        if let status = notificationManager.deliveryStatusSummary(
+                            language: appLanguage,
+                            seasonYear: program.publicConfig.currentSeasonYear
+                        ) {
+                            Text(status)
                                 .font(.footnote)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(
+                                    notificationManager.lastTopicSubscribeError != nil ? .orange : .secondary
+                                )
                         }
                     }
                 }
 
+                Section(L10n.text("settings_about_section", language: appLanguage)) {
+                    LabeledContent(L10n.text("settings_about_version", language: appLanguage)) {
+                        Text(AppMetadata.versionLabel)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(AppMetadata.copyright)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section {
-                    NavigationLink(L10n.text("settings_about_app", language: appLanguage)) {
-                        SettingsAboutAppView(appLanguage: appLanguage)
+                    Button(L10n.text("settings_send_feedback", language: appLanguage)) {
+                        openFeedback()
                     }
 
                     Button(L10n.text("settings_rate_app", language: appLanguage)) {
@@ -87,38 +95,41 @@ struct SettingsView: View {
                             openURL(url)
                         }
                     }
-
-                    Button(L10n.text("settings_export_data", language: appLanguage)) {
-                        exportProgramData()
-                    }
                 }
             }
             .navigationTitle(L10n.text("settings_title", language: appLanguage))
+            .sheet(isPresented: $showFeedbackMail) {
+                MailComposeView(
+                    recipients: [AppSupport.feedbackEmail],
+                    subject: AppSupport.feedbackMailSubject(language: appLanguage),
+                    body: AppSupport.feedbackMailBody(seasonYear: program.publicConfig.currentSeasonYear)
+                )
+            }
+            .alert(
+                L10n.text("settings_send_feedback", language: appLanguage),
+                isPresented: $showFeedbackUnavailableAlert
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(
+                    String(
+                        format: L10n.text("settings_feedback_unavailable", language: appLanguage),
+                        AppSupport.feedbackEmail
+                    )
+                )
+            }
             .task {
                 await notificationManager.refreshAuthorizationStatus()
             }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active {
-                    Task { await notificationManager.refreshAuthorizationStatus() }
-                }
-            }
-            .sheet(isPresented: $showShareSheet) {
-                if let url = exportFileURL {
-                    ActivityViewController(activityItems: [url])
-                }
-            }
-            .alert(
-                L10n.text("settings_export_error_title", language: appLanguage),
-                isPresented: Binding(
-                    get: { exportErrorMessage != nil },
-                    set: { isPresented in
-                        if !isPresented { exportErrorMessage = nil }
+                    Task {
+                        await notificationManager.refreshAuthorizationStatus()
+                        await notificationManager.syncSubscriptionIfNeeded(
+                            seasonYear: program.publicConfig.currentSeasonYear
+                        )
                     }
-                )
-            ) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(exportErrorMessage ?? "")
+                }
             }
         }
     }
@@ -140,52 +151,38 @@ struct SettingsView: View {
         )
     }
 
-    private func exportProgramData() {
-        do {
-            let data = try program.exportProgramSeedJSONData()
-            let fileURL = try writeTempExportFile(data: data)
-            exportFileURL = fileURL
-            showShareSheet = true
-        } catch {
-            exportErrorMessage = error.localizedDescription
+    private func openFeedback() {
+        if MFMailComposeViewController.canSendMail() {
+            showFeedbackMail = true
+            return
         }
-    }
-
-    private func writeTempExportFile(data: Data) throws -> URL {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let stamp = formatter.string(from: Date())
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cinetransat-export-\(stamp).json")
-        try data.write(to: url, options: .atomic)
-        return url
+        if let url = AppSupport.feedbackMailtoURL(
+            language: appLanguage,
+            seasonYear: program.publicConfig.currentSeasonYear
+        ) {
+            openURL(url)
+            return
+        }
+        showFeedbackUnavailableAlert = true
     }
 }
 
-private struct SettingsAboutAppView: View {
-    let appLanguage: AppLanguage
+private enum AppMetadata {
+    static var versionLabel: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+        return "\(version) (\(build))"
+    }
 
-    var body: some View {
-        ScrollView {
-            Text(L10n.text("settings_about_copy", language: appLanguage))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+    static var copyright: String {
+        if let notice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String,
+           !notice.isEmpty {
+            return notice
         }
-        .navigationTitle(L10n.text("settings_about_app", language: appLanguage))
-        .navigationBarTitleDisplayMode(.inline)
+        return "Copyright © \(Calendar.current.component(.year, from: Date())) Heewhack"
     }
 }
 
 #Preview {
     SettingsView()
-}
-
-private struct ActivityViewController: UIViewControllerRepresentable {
-    let activityItems: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

@@ -63,28 +63,30 @@ POSTER_STEM_BY_TITLE: dict[str, str] = {
     "Everything Everywhere All at Once": "everything-everywhere-all-at-once",
     "Bãhubali : The Beginning": "bahubali-the-beginning",
     "Le Fabuleux Destin d'Amélie Poulain": "le-fabuleux-destin-d'amelie-poulain",
-    # 2026 season (fictional programme for App Store / preview)
-    "Grease": "grease",
-    "Intouchables": "intouchables",
-    "La Grande Vadrouille": "la-grande-vadrouille",
+    # 2026 season
     "Back to the Future": "back-to-the-future",
-    "The Grand Budapest Hotel": "the-grand-budapest-hotel",
-    "Jurassic Park": "jurassic-park",
-    "Kung Fu Panda": "kung-fu-panda",
-    "Les Choristes": "les-choristes",
-    "Delicatessen": "delicatessen",
-    "Parasite": "parasite",
-    "Flashdance": "flashdance",
-    "Notting Hill": "notting-hill",
-    "Kirikou et la Sorcière": "kirikou-et-la-sorciere",
-    "Raiders of the Lost Ark": "raiders-of-the-lost-ark",
-    "Your Name.": "your-name",
-    "Cinema Paradiso": "cinema-paradiso",
-    "Forrest Gump": "forrest-gump",
-    "The Matrix": "the-matrix",
-    "Casablanca": "casablanca",
-    "RRR": "rrr",
-    "Le Dîner de cons": "le-diner-de-cons",
+    "La Famille Bélier": "la-famille-belier",
+    "Billy Elliot": "billy-elliot",
+    "Flow": "flow",
+    "Sauvages": "sauvages",
+    "Love and Other Disasters": "love-and-other-disasters",
+    "Paddington": "paddington",
+    "Soirées courts-métrages": "soiree-court-metrages",
+    "I Am Not a Witch": "i-am-not-a-witch",
+    "Singin' in the Rain": "singin-in-the-rain",
+    "Wadjda": "wadjda",
+    "The Girl Who Leapt Through Time": "the-girl-who-leapt-through-time",
+    "CHOREOKE": "soiree-choreoke",
+    "Jumanji: Welcome to the Jungle": "jumanji-welcome-to-the-jungle",
+    "Bon Schuur Ticino (Ciao-ciao bourbine)": "bon-schuur-ticino",
+    "Portrait de la jeune fille en feu": "portrait-de-la-jeune-fille-en-feu",
+    "BlacKkKlansman": "blackkklansman",
+    "Much Ado About Nothing": "much-ado-about-nothing",
+    "The Mummy": "the-mummy",
+    "Lo que quisimos ser": "lo-que-quisimos-ser",
+    "Ocean's Eleven": "oceans-eleven",
+    "Baahubali 2: The Conclusion": "baahubali-2-the-conclusion",
+    "Intouchables": "intouchables",
 }
 
 
@@ -105,8 +107,11 @@ def screening(
     canceled: bool = False,
     minutes: int | None = None,
     blurb: str = "",
+    blurb_en: str | None = None,
     search_title: str | None = None,
     poster_key: str | None = None,
+    legal_age: int | None = None,
+    recommended_age: int | None = None,
     sunset_at: tuple[int, int] | None = None,
 ) -> dict:
     sunset_h, sunset_mi = sunset_at if sunset_at is not None else (21, 18)
@@ -120,10 +125,16 @@ def screening(
         "synopsis": blurb,
         "posterKey": poster_stem_for(title, search_title, poster_key),
     }
+    if blurb_en:
+        doc["synopsisEn"] = blurb_en
     if minutes is not None:
         doc["runtimeMinutes"] = minutes
     if search_title is not None:
         doc["searchTitle"] = search_title
+    if legal_age is not None:
+        doc["legalAge"] = legal_age
+    if recommended_age is not None:
+        doc["recommendedAge"] = recommended_age
     return doc
 
 

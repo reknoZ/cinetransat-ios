@@ -10,6 +10,7 @@ import SwiftUI
 private struct WeekPageIndicatorBar: View {
     let count: Int
     @Binding var selection: Int
+    var language: AppLanguage
 
     var body: some View {
         HStack(spacing: 9) {
@@ -20,18 +21,20 @@ private struct WeekPageIndicatorBar: View {
                     }
                 } label: {
                     Capsule()
-                        .fill(index == selection ? Color.accentColor : Color.primary.opacity(0.22))
+                        .fill(index == selection ? Color.accentColor : Color.festivalProgramTitle.opacity(0.22))
                         .frame(width: index == selection ? 22 : 7, height: 7)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Semaine \(index + 1)")
+                .accessibilityLabel(
+                    String(format: L10n.text("program_week_accessibility", language: language), index + 1)
+                )
             }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 18)
         .background {
             Capsule()
-                .fill(Color(red: 0.86, green: 0.87, blue: 0.89))
+                .fill(Color.festivalProgramPagerTrack)
                 .overlay {
                     Capsule()
                         .strokeBorder(Color.black.opacity(0.08), lineWidth: 1)
@@ -49,7 +52,6 @@ private struct WeekProgramFitContent: View {
     @EnvironmentObject private var watchList: WatchListStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var justToggledWatchListID: String?
-    @State private var isRefreshingPosters = false
     @Binding var path: NavigationPath
     let week: FestivalWeek
     let weekNumber: Int
@@ -92,7 +94,7 @@ private struct WeekProgramFitContent: View {
                     Text(localizedWeekLabel(number: weekNumber, weekLabel: week.label, language: appLanguage))
                         .font(.caption.weight(.bold))
                         .tracking(0.6)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.festivalProgramTitle)
                         .padding(.horizontal, 14)
                         .padding(.vertical, compact ? 5 : 7)
                         .background {
@@ -102,25 +104,6 @@ private struct WeekProgramFitContent: View {
                         }
 
                     Spacer(minLength: 0)
-
-                    Button {
-                        Task { await refreshPosters() }
-                    } label: {
-                        Group {
-                            if isRefreshingPosters {
-                                ProgressView()
-                                    .controlSize(.small)
-                            } else {
-                                Image(systemName: "arrow.clockwise")
-                                    .font(.body.weight(.semibold))
-                            }
-                        }
-                        .frame(width: 32, height: 32)
-                        .foregroundStyle(Color.accentColor)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isRefreshingPosters)
-                    .accessibilityLabel(L10n.text("program_refresh_posters", language: appLanguage))
                 }
                 .frame(height: weekStripH)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -145,14 +128,6 @@ private struct WeekProgramFitContent: View {
             .padding(.top, topInset)
             .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
         }
-    }
-
-    private func refreshPosters() async {
-        guard !isRefreshingPosters else { return }
-        isRefreshingPosters = true
-        defer { isRefreshingPosters = false }
-        let keys = Set(week.orderedScreenings.map(\.posterKey))
-        _ = await program.refreshMissingPosters(for: keys)
     }
 
     private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
@@ -182,7 +157,7 @@ private struct WeekProgramFitContent: View {
             )
             Text(screening.localizedTitle(language: appLanguage))
                 .font(compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
-                .foregroundStyle(screening.hasPassed ? Color.secondary : Color.primary)
+                .foregroundStyle(screening.hasPassed ? Color.festivalProgramTitleMuted : Color.festivalProgramTitle)
                 .opacity(screening.hasPassed ? 0.8 : 1)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -235,7 +210,7 @@ struct ProgramPhoneView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
-                WeekPageIndicatorBar(count: program.weeks.count, selection: $weekIndex)
+                WeekPageIndicatorBar(count: program.weeks.count, selection: $weekIndex, language: appLanguage)
             }
             .background(Color.festivalProgramBackground)
             .navigationBarTitleDisplayMode(.inline)
@@ -278,7 +253,7 @@ struct ProgramPadView: View {
                     .tag(week)
                 }
             }
-            .navigationTitle(appLanguage == .fr ? "Semaines" : "Weeks")
+            .navigationTitle(L10n.text("program_weeks_title", language: appLanguage))
             .onAppear {
                 if selectedWeek == nil {
                     selectedWeek = program.weeks.first
@@ -312,9 +287,9 @@ struct ProgramPadView: View {
                             }
                     } else {
                         ContentUnavailableView(
-                            "Choisir une semaine",
+                            L10n.text("program_pick_week_title", language: appLanguage),
                             systemImage: "calendar",
-                            description: Text("Sélectionnez une ligne dans la colonne de gauche.")
+                            description: Text(L10n.text("program_pick_week_body", language: appLanguage))
                         )
                     }
                 }

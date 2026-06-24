@@ -25,7 +25,10 @@ struct ScreeningDocument: Codable {
     let sunset: String
     let isCanceled: Bool
     let synopsis: String
+    let synopsisEn: String?
     let runtimeMinutes: Int?
+    let legalAge: Int?
+    let recommendedAge: Int?
     let searchTitle: String?
     let posterURL: String?
     let posterKey: String?
@@ -81,7 +84,10 @@ enum FestivalProgramFeedDecoder {
             sunsetAt: sunsetAt,
             isCanceled: doc.isCanceled,
             synopsis: doc.synopsis,
+            synopsisEn: doc.synopsisEn,
             runtimeMinutes: doc.runtimeMinutes,
+            legalAge: doc.legalAge,
+            recommendedAge: doc.recommendedAge,
             searchTitle: resolvedSearchTitle,
             posterURL: doc.posterURL,
             posterKey: resolvedPosterKey

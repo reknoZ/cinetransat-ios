@@ -31,22 +31,48 @@ enum L10n {
         let table: [String: (fr: String, en: String)] = [
             "tab_program": ("Programme", "Program"),
             "tab_watchlist": ("À voir", "Watchlist"),
+            "watchlist_empty_title": ("Rien dans votre liste", "Nothing on your watch list yet"),
+            "watchlist_empty_body": (
+                "Touchez l’icône signet sur une affiche dans Programme pour marquer une séance.",
+                "Tap the bookmark icon on a poster in program to mark a screening you plan to see."
+            ),
             "tab_info": ("Infos", "Info"),
             "tab_festival": ("Festival", "Festival"),
             "tab_settings": ("Réglages", "Settings"),
             "settings_title": ("Réglages", "Settings"),
             "settings_language": ("Langue", "Language"),
-            "settings_about_app": ("À propos de l'app", "About the app"),
+            "settings_about_section": ("À propos de CinéTransat !", "About CinéTransat!"),
             "settings_rate_app": ("Noter cette app", "Rate this app"),
-            "settings_export_data": ("Exporter les données", "Export data"),
-            "settings_export_error_title": ("Export impossible", "Export failed"),
-            "settings_about_copy": ("CinéTransat est une app non officielle de démonstration pour consulter le programme, les infos utiles et votre liste de films.", "CinéTransat is an unofficial demo app to browse the program, practical info, and your movie list."),
+            "settings_send_feedback": ("Envoyer un commentaire", "Send feedback"),
+            "settings_feedback_subject": ("CinéTransat — commentaire", "CinéTransat — feedback"),
+            "settings_feedback_unavailable": (
+                "Impossible d’ouvrir Mail. Écrivez à %@.",
+                "Unable to open Mail. Please email %@."
+            ),
+            "settings_about_version": ("Version", "Version"),
             "settings_language_help": ("Le changement de langue s’applique immédiatement à l’interface principale.", "Language changes apply immediately to the main interface."),
-            "about_title": ("À propos", "About"),
-            "about_intro": ("Six semaines, quatre soirs par semaine : cinéma en plein air après le coucher du soleil.", "Six weeks, four nights each week: open-air cinema after sunset."),
-            "about_data_copy": ("Le programme et les liens publics sont chargés depuis Firebase (Cloud Firestore) lorsque l’app est connectée ; une copie locale sert de secours hors ligne.", "The schedule and public links load from Firebase (Cloud Firestore) when online; a local copy is used as an offline fallback."),
-            "about_poster_copy": ("Affiches : une image par film (`posterKey`, dérivé du titre). Chaque séance peut pointer vers une autre affiche (rattrapage, report).", "Posters: one image per film (`posterKey`, from the title). Each screening can reference a different poster (catch-up, reschedule)."),
+            "about_intro": ("Six semaines, quatre soirs par semaine : cinéma gratuit en plein air après le coucher du soleil.", "Six weeks, four nights each week: free open-air cinema after sunset."),
+            "festival_rattrapage_vote": ("Vote pour la Soirée Rattrapage : bientôt disponible", "Vote for Soirée Rattrapage: coming soon"),
             "screening_passed": ("Passé", "Passed"),
+            "detail_legal_age": ("Âge légal", "Legal age"),
+            "detail_recommended_age": ("Âge suggéré", "Recommended age"),
+            "detail_sunset": ("Coucher du soleil", "Sunset"),
+            "detail_start": ("Début de la projection", "Screening start"),
+            "detail_duration": ("Durée", "Duration"),
+            "detail_duration_variable": ("Variable", "Variable"),
+            "detail_search_imdb": ("IMDb", "IMDb"),
+            "detail_search_allocine": ("Allociné", "Allociné"),
+            "detail_screening_canceled": ("Séance annulée", "Screening canceled"),
+            "detail_film_year": ("Année du film", "Film year"),
+            "detail_previous_film": ("Film précédent", "Previous film"),
+            "detail_next_film": ("Film suivant", "Next film"),
+            "screening_canceled_badge": ("Annulé", "Canceled"),
+            "program_weeks_title": ("Semaines", "Weeks"),
+            "program_pick_week_title": ("Choisir une semaine", "Choose a week"),
+            "program_pick_week_body": ("Sélectionnez une ligne dans la colonne de gauche.", "Select a row in the sidebar."),
+            "program_week_accessibility": ("Semaine %d", "Week %d"),
+            "watchlist_add": ("Ajouter à la liste", "Add to watch list"),
+            "watchlist_remove": ("Retirer de la liste", "Remove from watch list"),
             "program_season_picker": ("Choisir la saison", "Choose season"),
             "program_season_picker_hint": ("Faites défiler pour choisir une autre saison", "Scroll to choose another season"),
             "program_refresh_posters": ("Actualiser les affiches", "Refresh posters"),
@@ -59,7 +85,7 @@ enum L10n {
             "info_schedule_title": ("Jours et horaires", "Days and times"),
             "info_schedule_body": (
                 """
-                Projections du jeudi au dimanche, du 10 juillet au 17 août %@.
+                Projections du jeudi au dimanche, du 9 juillet au 16 août %@.
 
                 Début des films à la tombée de la nuit, entre 22h00 (mi-juillet) et 21h15 (fin août).
 
@@ -68,11 +94,11 @@ enum L10n {
                 Fin de la soirée vers minuit.
                 """,
                 """
-                Screenings run Thursday through Sunday, from 10 July to 17 August %@.
+                Screenings run Thursday through Sunday, from 9 July to 16 August %@.
 
                 Films start at nightfall, between 10:00 p.m. (mid-July) and 9:15 p.m. (late August).
 
-                Bar, deckchair rental, and activities from 7:00 p.m.
+                Bar, deck chair rental, and activities from 7:00 p.m.
 
                 Evenings end around midnight.
                 """
@@ -104,7 +130,7 @@ enum L10n {
 
                 In general, French-language films are subtitled in English; all other films are subtitled in French.
 
-                Languages and subtitles are listed in the programme.
+                Languages and subtitles are listed in the program.
                 """
             ),
             "info_bar_title": ("Buvette et pique-niques", "Bar and picnics"),
@@ -120,15 +146,15 @@ enum L10n {
                 Please note: barbecues are not allowed in the park.
                 """
             ),
-            "info_deckchairs_title": ("Location de transats", "Deckchair rental"),
+            "info_deckchairs_title": ("Location de transats", "Deck chair rental"),
             "info_deckchairs_body": (
                 """
-                Des transats sont disponibles à la location pour CHF 5.- tous les jours de projection dès 19h00. Paiement cash, carte ou par Twint. Attention, le nombre de transats à la location est limité.
+                Des transats sont disponibles à la location pour 5 CHF.- tous les jours de projection dès 19h00. Paiement cash, carte ou par Twint. Attention, le nombre de transats à la location est limité.
 
                 Le placement dans le parc est libre. Prévoyez des vêtements chauds et une couverture, les fins de soirées peuvent être fraîches.
                 """,
                 """
-                Deckchairs are available to rent for CHF 5 on every screening day from 7:00 p.m. Payment by cash, card, or Twint. The number of deckchairs is limited.
+                Deck chairs are available to rent for 5 CHF on every screening day as of 19h00. Payment by cash, card, or Twint. The number of deck chairs is limited.
 
                 Seating in the park is open. Bring warm clothes and a blanket; evenings can get cool.
                 """
@@ -164,11 +190,15 @@ enum L10n {
                 Projections annulées en cas de pluie ou de fort vent. Décision au plus tard le jour même de la projection à 19h30.
 
                 Annonce sur la page d’accueil de ce site et sur notre page Facebook ou Instagram.
+
+                Les notifications de mise à jour devraient apparaître dans cette app, si vous avez autorisé les notifications.
                 """,
                 """
                 Screenings are cancelled in case of rain or strong wind. The decision is made no later than 7:30 p.m. on the day of the screening.
 
                 Updates are posted on the homepage of this website and on our Facebook or Instagram pages.
+
+                Update notifications should appear in this app, if you authorized notifications.
                 """
             ),
             "info_toilets_title": ("Toilettes", "Toilets"),
@@ -205,22 +235,6 @@ enum L10n {
                 """
             ),
             "info_accessibility_title": ("Accessibilité", "Accessibility"),
-            "settings_notifications": ("Alertes annulations", "Cancellation alerts"),
-            "settings_notifications_help": (
-                "Recevez une notification si une séance est annulée (pluie ou vent), même lorsque l’app est fermée.",
-                "Get notified when a screening is canceled (rain or wind), even when the app is closed."
-            ),
-            "settings_notifications_enable": ("Activer les notifications", "Enable notifications"),
-            "settings_notifications_on": ("Notifications activées", "Notifications on"),
-            "settings_notifications_denied": (
-                "Autorisez les notifications dans Réglages iOS pour recevoir les alertes.",
-                "Allow notifications in iOS Settings to receive alerts."
-            ),
-            "notification_cancel_title": ("Séance annulée", "Screening canceled"),
-            "notification_cancel_body": (
-                "%@ — %@. Séance annulée (intempéries).",
-                "%@ — %@. Canceled due to weather."
-            ),
             "info_accessibility_body": (
                 """
                 CinéTransat est un cinéma éphémère, en extérieur, dans un parc ; les mesures d’accessibilité sont donc plus compliquées à mettre en place que dans une salle de cinéma.
@@ -236,10 +250,46 @@ enum L10n {
 
                 The lower lawn entrance is accessible for people with reduced mobility. Films do not have audio description or closed captions (CC). Foreign-language films are subtitled in French; French-language films are subtitled in English.
 
-                Wheelchair-accessible restrooms are at the bottom of the park, 300 m towards the Restaurant de la Perle du Lac. Visitors with reduced mobility can contact us for a cleared area on the lower lawn, assistance, or a reserved deckchair.
+                Wheelchair-accessible restrooms are at the bottom of the park, 300 m towards the Restaurant de la Perle du Lac. Visitors with reduced mobility can contact us for a cleared area on the lower lawn, assistance, or a reserved deck chair.
 
                 For any questions or specific needs, contact us and we will do our best to help: info@cinetransat.ch
                 """
+            ),
+            "settings_notifications": ("Alertes annulations", "Cancellation alerts"),
+            "settings_notifications_help": (
+                "Recevez une notification si une séance est annulée (pluie ou vent), même lorsque l’app est fermée.",
+                "Get notified when a screening is canceled (rain or wind), even when the app is closed."
+            ),
+            "settings_notifications_enable": ("Activer les notifications", "Enable notifications"),
+            "settings_notifications_on": ("Notifications activées", "Notifications on"),
+            "settings_notifications_denied": (
+                "Autorisez les notifications dans Réglages iOS pour recevoir les alertes.",
+                "Allow notifications in iOS Settings to receive alerts."
+            ),
+            "settings_notifications_status_ready": (
+                "Abonné à %@ — alertes même app fermée.",
+                "Subscribed to %@ — alerts work when the app is closed."
+            ),
+            "settings_notifications_status_waiting_apns": (
+                "En attente de l’enregistrement Apple Push…",
+                "Waiting for Apple Push registration…"
+            ),
+            "settings_notifications_status_connecting": (
+                "Connexion au service d’alertes…",
+                "Connecting to alert service…"
+            ),
+            "settings_notifications_apns_failed": (
+                "Échec Apple Push : %@",
+                "Apple Push registration failed: %@"
+            ),
+            "settings_notifications_apns_timeout": (
+                "Délai dépassé pour Apple Push. Désactivez puis réactivez les alertes. Utilisez un iPhone réel (pas le simulateur).",
+                "Apple Push registration timed out. Toggle alerts off and on. Use a physical iPhone (not the Simulator)."
+            ),
+            "notification_cancel_title": ("Séance annulée", "Screening canceled"),
+            "notification_cancel_body": (
+                "%@ — %@. Séance annulée (intempéries).",
+                "%@ — %@. Canceled due to weather."
             ),
         ]
         let pair = table[key] ?? (fr: key, en: key)
@@ -247,6 +297,48 @@ enum L10n {
         case .fr: return pair.fr
         case .en: return pair.en
         }
+    }
+}
+
+enum FestivalDateFormatters {
+    private static var zurichCalendar: Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Zurich") ?? .current
+        return cal
+    }
+
+    static func screeningDay(_ date: Date, language: AppLanguage) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = zurichCalendar
+        formatter.locale = Locale(identifier: language.localeIdentifier)
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    static func screeningTime(_ date: Date, language: AppLanguage) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = zurichCalendar
+        formatter.locale = Locale(identifier: "en_GB_POSIX")
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+
+    static func mediumDate(_ date: Date, language: AppLanguage) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = zurichCalendar
+        formatter.locale = Locale(identifier: language.localeIdentifier)
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    static func posterBadgeDay(_ date: Date, language: AppLanguage) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = zurichCalendar
+        formatter.locale = Locale(identifier: language.localeIdentifier)
+        formatter.setLocalizedDateFormatFromTemplate("dMMM")
+        return formatter.string(from: date)
     }
 }
 
@@ -272,5 +364,19 @@ extension Screening {
             "Soirée rattrapage": "Make Up Night",
         ]
         return englishOverrides[title] ?? title
+    }
+
+    func localizedSynopsis(language: AppLanguage) -> String {
+        switch language {
+        case .fr:
+            return synopsis
+        case .en:
+            if let synopsisEn, !synopsisEn.isEmpty { return synopsisEn }
+            return synopsis
+        }
+    }
+
+    var releaseYear: Int? {
+        PosterCatalog.releaseYear(forPosterKey: posterKey)
     }
 }

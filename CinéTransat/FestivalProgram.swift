@@ -32,7 +32,10 @@ struct Screening: Identifiable, Hashable {
     let sunsetAt: Date
     let isCanceled: Bool
     let synopsis: String
+    let synopsisEn: String?
     let runtimeMinutes: Int?
+    let legalAge: Int?
+    let recommendedAge: Int?
     let searchTitle: String
     /// Optional HTTPS poster URL (Firestore). Takes priority over `posterBaseURL`.
     let posterURL: String?
@@ -51,7 +54,10 @@ struct Screening: Identifiable, Hashable {
         sunsetAt: Date,
         isCanceled: Bool,
         synopsis: String,
+        synopsisEn: String? = nil,
         runtimeMinutes: Int?,
+        legalAge: Int? = nil,
+        recommendedAge: Int? = nil,
         searchTitle: String? = nil,
         posterURL: String? = nil,
         posterKey: String? = nil
@@ -62,7 +68,10 @@ struct Screening: Identifiable, Hashable {
         self.startsAt = startsAt ?? Self.defaultStartTime(for: id, sunsetAt: sunsetAt)
         self.isCanceled = isCanceled
         self.synopsis = synopsis
+        self.synopsisEn = synopsisEn
         self.runtimeMinutes = runtimeMinutes
+        self.legalAge = legalAge
+        self.recommendedAge = recommendedAge
         self.searchTitle = searchTitle ?? title
         self.posterURL = posterURL
         self.posterKey = PosterCatalog.stem(forDisplayTitle: title, searchTitle: searchTitle, explicit: posterKey)
@@ -254,7 +263,10 @@ enum FestivalProgramBootstrap {
                             "sunset": iso8601String(screening.sunsetAt),
                             "isCanceled": screening.isCanceled,
                             "synopsis": screening.synopsis,
+                            "synopsisEn": screening.synopsisEn as Any,
                             "runtimeMinutes": screening.runtimeMinutes as Any,
+                            "legalAge": screening.legalAge as Any,
+                            "recommendedAge": screening.recommendedAge as Any,
                             "searchTitle": screening.searchTitle,
                             "posterURL": screening.posterURL as Any,
                             "posterKey": screening.posterKey,
@@ -295,7 +307,10 @@ enum FestivalProgramBootstrap {
                         sunset: formatter.string(from: screening.sunsetAt),
                         isCanceled: screening.isCanceled,
                         synopsis: screening.synopsis,
+                        synopsisEn: screening.synopsisEn,
                         runtimeMinutes: screening.runtimeMinutes,
+                        legalAge: screening.legalAge,
+                        recommendedAge: screening.recommendedAge,
                         searchTitle: screening.searchTitle,
                         posterURL: screening.posterURL,
                         posterKey: screening.posterKey
@@ -304,7 +319,7 @@ enum FestivalProgramBootstrap {
             )
         }
         let document = FestivalProgramDocument(
-            schemaVersion: 2,
+            schemaVersion: 3,
             seasonYear: seasonYear,
             updatedAt: formatter.string(from: Date()),
             weeks: weekDocs

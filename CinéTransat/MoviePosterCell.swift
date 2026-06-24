@@ -26,13 +26,10 @@ struct MoviePosterCell: View {
         watchListEnabled || isOnWatchList
     }
 
-    /// Day + short month (no time), e.g. "10 juil."
-    private static let dayOnlyFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_CH")
-        f.setLocalizedDateFormatFromTemplate("dMMM")
-        return f
-    }()
+    /// Day + short month (no time), e.g. "10 juil." / "Jul 10"
+    private var posterBadgeDay: String {
+        FestivalDateFormatters.posterBadgeDay(screening.startsAt, language: appLanguage)
+    }
 
     private var cornerRadius: CGFloat { compact ? 12 : 16 }
 
@@ -96,7 +93,7 @@ struct MoviePosterCell: View {
                         Text("🌧️")
                             .font(.system(size: canceledRainEmojiSize))
                             .shadow(color: .black.opacity(0.35), radius: 6, y: 2)
-                        Text("Annulé")
+                        Text(L10n.text("screening_canceled_badge", language: appLanguage))
                             .font(canceledAnnuleFont)
                             .foregroundStyle(.white)
                     }
@@ -106,7 +103,7 @@ struct MoviePosterCell: View {
         }
         .overlay(alignment: .topLeading) {
             if showDateBadge {
-                Text(Self.dayOnlyFormatter.string(from: screening.startsAt))
+                Text(posterBadgeDay)
                     .font(compact ? .caption2.weight(.bold) : .caption.weight(.bold))
                     .foregroundStyle(screening.hasPassed ? Color.white.opacity(0.85) : .white)
                     .lineLimit(1)
@@ -152,7 +149,11 @@ struct MoviePosterCell: View {
                             watchListBookmarkLabel
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(isOnWatchList ? "Remove from watch list" : "Add to watch list")
+                        .accessibilityLabel(
+                            isOnWatchList
+                                ? L10n.text("watchlist_remove", language: appLanguage)
+                                : L10n.text("watchlist_add", language: appLanguage)
+                        )
                     } else {
                         watchListBookmarkLabel
                     }

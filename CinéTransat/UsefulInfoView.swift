@@ -83,7 +83,7 @@ private struct PracticalInfoSection: Identifiable {
         bodyFormatArgument: String? = nil
     ) -> PracticalInfoSection {
         let bodyKey = "info_\(key)_body"
-        let rawBody = L10n.text(bodyKey, language: language)
+        let rawBody = L10n.text(bodyKey, language: language).trimmingCharacters(in: .whitespacesAndNewlines)
         let body = bodyFormatArgument.map { String(format: rawBody, $0) } ?? rawBody
         return PracticalInfoSection(
             id: key,

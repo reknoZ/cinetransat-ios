@@ -33,7 +33,7 @@ struct ProgramSeasonPicker: View {
             Text(verbatim: "\(year)")
                 .font(.system(.subheadline, design: .rounded).weight(selected ? .bold : .semibold))
                 .monospacedDigit()
-                .foregroundStyle(selected ? Color.accentColor : Color.primary.opacity(0.65))
+                .foregroundStyle(selected ? Color.accentColor : Color.festivalProgramTitle.opacity(0.65))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background {
@@ -46,7 +46,7 @@ struct ProgramSeasonPicker: View {
                             }
                     } else {
                         Capsule()
-                            .fill(Color.primary.opacity(0.06))
+                            .fill(Color.festivalProgramTitle.opacity(0.08))
                     }
                 }
         }

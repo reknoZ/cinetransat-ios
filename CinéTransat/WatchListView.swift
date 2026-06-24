@@ -14,14 +14,6 @@ struct WatchListView: View {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_CH")
-        f.dateStyle = .medium
-        f.timeStyle = .none
-        return f
-    }()
-
     private var listedScreenings: [Screening] {
         let activeYear = program.publicConfig.currentSeasonYear
         let yearPrefix = String(activeYear)
@@ -35,9 +27,9 @@ struct WatchListView: View {
             Group {
                 if listedScreenings.isEmpty {
                     ContentUnavailableView(
-                        "Nothing on your watch list yet",
+                        L10n.text("watchlist_empty_title", language: appLanguage),
                         systemImage: "bookmark",
-                        description: Text("Tap the bookmark icon on a poster in Programme to mark a screening you plan to see.")
+                        description: Text(L10n.text("watchlist_empty_body", language: appLanguage))
                     )
                 } else {
                     List(listedScreenings) { screening in
@@ -58,7 +50,7 @@ struct WatchListView: View {
                                         .font(.headline)
                                         .foregroundStyle(screening.hasPassed ? Color.secondary : Color.primary)
                                         .lineLimit(2)
-                                    Text(Self.dateFormatter.string(from: screening.startsAt))
+                                    Text(FestivalDateFormatters.mediumDate(screening.startsAt, language: appLanguage))
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
                                     if screening.hasPassed && !screening.isCanceled {

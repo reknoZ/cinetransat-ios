@@ -51,10 +51,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        #if DEBUG
         Task { @MainActor in
-            print("APNs registration failed: \(error.localizedDescription)")
+            CancellationNotificationManager.shared.handleAPNsRegistrationFailure(error)
         }
-        #endif
     }
 }

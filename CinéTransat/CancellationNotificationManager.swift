@@ -19,10 +19,14 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
 
     private let enabledKey = "cancellationNotificationsEnabled"
     private let subscribedTopicYearKey = "cancellationNotificationsTopicYear"
+    private let targetTopicYearKey = "cancellationNotificationsTargetYear"
     private let initialPromptCompletedKey = "initialNotificationPromptCompleted"
 
     /// Last FCM subscribe error (for Settings debug); cleared on success.
     @Published private(set) var lastTopicSubscribeError: String?
+
+    /// True after a successful FCM topic subscribe for the current season.
+    @Published private(set) var isSubscribedToTopic = false
 
     @Published private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
 
@@ -32,6 +36,15 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
             UserDefaults.standard.set(newValue, forKey: enabledKey)
             objectWillChange.send()
         }
+    }
+
+    private var subscribedSeasonYear: Int? {
+        UserDefaults.standard.object(forKey: subscribedTopicYearKey) as? Int
+    }
+
+    private var targetSeasonYear: Int? {
+        subscribedSeasonYear
+            ?? UserDefaults.standard.object(forKey: targetTopicYearKey) as? Int
     }
 
     private override init() {
@@ -51,6 +64,31 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         authorizationStatus = settings.authorizationStatus
     }
 
+    /// Human-readable push pipeline status for Settings.
+    func deliveryStatusSummary(language: AppLanguage, seasonYear: Int) -> String? {
+        guard isEnabled else { return nil }
+        switch authorizationStatus {
+        case .denied:
+            return L10n.text("settings_notifications_denied", language: language)
+        default:
+            break
+        }
+        if let err = lastTopicSubscribeError {
+            return err
+        }
+        if isSubscribedToTopic, let year = subscribedSeasonYear {
+            let topic = Self.cancellationTopic(seasonYear: year)
+            return String(
+                format: L10n.text("settings_notifications_status_ready", language: language),
+                topic
+            )
+        }
+        if !hasAPNsToken {
+            return L10n.text("settings_notifications_status_waiting_apns", language: language)
+        }
+        return L10n.text("settings_notifications_status_connecting", language: language)
+    }
+
     /// On first install, shows the standard iOS notification permission dialog once.
     func promptForNotificationsOnFirstLaunchIfNeeded(seasonYear: Int) async {
         guard !UserDefaults.standard.bool(forKey: initialPromptCompletedKey) else { return }
@@ -68,20 +106,14 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         let granted = await requestAuthorization()
         guard granted else {
             isEnabled = false
+            isSubscribedToTopic = false
             return false
         }
         isEnabled = true
-        UserDefaults.standard.set(seasonYear, forKey: subscribedTopicYearKey)
+        lastTopicSubscribeError = nil
+        UserDefaults.standard.set(seasonYear, forKey: targetTopicYearKey)
         UIApplication.shared.registerForRemoteNotifications()
-        // Topic subscribe runs from AppDelegate after APNs token is set (not here).
-        if hasAPNsToken {
-            await subscribeToCancellationTopic(seasonYear: seasonYear)
-        } else {
-            lastTopicSubscribeError = nil
-            #if DEBUG
-            print("Waiting for APNs token before FCM topic subscribe")
-            #endif
-        }
+        await waitForAPNsAndSubscribe(seasonYear: seasonYear)
         return true
     }
 
@@ -89,20 +121,18 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
 
     /// Call after APNs token is set — topic subscribe often fails if it runs too early.
     func resubscribeToCurrentTopicIfEnabled() async {
-        guard isEnabled,
-              let year = UserDefaults.standard.object(forKey: subscribedTopicYearKey) as? Int else { return }
-        guard !isSubscribingToTopic else { return }
-        isSubscribingToTopic = true
-        defer { isSubscribingToTopic = false }
-        await subscribeToCancellationTopic(seasonYear: year)
+        guard isEnabled, let year = targetSeasonYear else { return }
+        await waitForAPNsAndSubscribe(seasonYear: year)
     }
 
     func disableNotifications() async {
         isEnabled = false
-        if let year = UserDefaults.standard.object(forKey: subscribedTopicYearKey) as? Int {
+        isSubscribedToTopic = false
+        if let year = subscribedSeasonYear {
             await unsubscribeFromCancellationTopic(seasonYear: year)
         }
         UserDefaults.standard.removeObject(forKey: subscribedTopicYearKey)
+        UserDefaults.standard.removeObject(forKey: targetTopicYearKey)
     }
 
     func syncSubscriptionIfNeeded(seasonYear: Int) async {
@@ -111,6 +141,7 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
             await subscribeToCancellationTopic(seasonYear: seasonYear)
         } else {
             UIApplication.shared.registerForRemoteNotifications()
+            await waitForAPNsAndSubscribe(seasonYear: seasonYear)
         }
     }
 
@@ -120,6 +151,20 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         Task {
             await deliverLocalCancellationAlerts(screenings, seasonYear: seasonYear, language: language)
         }
+    }
+
+    func handleAPNsRegistrationFailure(_ error: Error) {
+        isSubscribedToTopic = false
+        let language = AppLanguage(
+            rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? AppLanguage.fr.rawValue
+        ) ?? .fr
+        lastTopicSubscribeError = String(
+            format: L10n.text("settings_notifications_apns_failed", language: language),
+            error.localizedDescription
+        )
+        #if DEBUG
+        print("APNs registration failed: \(error.localizedDescription)")
+        #endif
     }
 
     // MARK: - Private
@@ -135,6 +180,34 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
             await refreshAuthorizationStatus()
             return false
         }
+    }
+
+    /// Retries until APNs token is available or times out (~30 s).
+    private func waitForAPNsAndSubscribe(seasonYear: Int) async {
+        guard !isSubscribingToTopic else { return }
+        isSubscribingToTopic = true
+        defer { isSubscribingToTopic = false }
+
+        for attempt in 1...15 {
+            if hasAPNsToken {
+                await subscribeToCancellationTopic(seasonYear: seasonYear)
+                return
+            }
+            UIApplication.shared.registerForRemoteNotifications()
+            #if DEBUG
+            print("Waiting for APNs token (attempt \(attempt)/15) before FCM topic subscribe")
+            #endif
+            try? await Task.sleep(for: .seconds(2))
+        }
+
+        isSubscribedToTopic = false
+        let language = AppLanguage(
+            rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? AppLanguage.fr.rawValue
+        ) ?? .fr
+        lastTopicSubscribeError = L10n.text("settings_notifications_apns_timeout", language: language)
+        #if DEBUG
+        print("APNs token not received — topic subscribe timed out")
+        #endif
     }
 
     private func deliverLocalCancellationAlerts(
@@ -156,7 +229,7 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         }
 
         #if DEBUG
-        print("Scheduling \(screenings.count) local cancellation alert(s)")
+        print("Scheduling \(screenings.count) local cancellation alert(s) — app is running (Firestore fallback, not lock-screen push)")
         #endif
 
         for screening in screenings {
@@ -174,7 +247,7 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         content.body = String(
             format: L10n.text("notification_cancel_body", language: language),
             screening.localizedTitle(language: language),
-            Self.formattedScreeningDate(screening.startsAt, language: language)
+            FestivalDateFormatters.screeningDay(screening.startsAt, language: language)
         )
         content.sound = .default
         content.userInfo = [
@@ -200,29 +273,6 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         }
     }
 
-    private static let frDateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_CH")
-        f.dateStyle = .long
-        f.timeStyle = .none
-        return f
-    }()
-
-    private static let enDateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US")
-        f.dateStyle = .long
-        f.timeStyle = .none
-        return f
-    }()
-
-    private static func formattedScreeningDate(_ date: Date, language: AppLanguage) -> String {
-        switch language {
-        case .fr: frDateFormatter.string(from: date)
-        case .en: enDateFormatter.string(from: date)
-        }
-    }
-
     private var hasAPNsToken: Bool {
         #if canImport(FirebaseMessaging)
         Messaging.messaging().apnsToken != nil
@@ -235,33 +285,38 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         guard hasAPNsToken else { return }
 
         let topic = Self.cancellationTopic(seasonYear: seasonYear)
-        if let previous = UserDefaults.standard.object(forKey: subscribedTopicYearKey) as? Int,
-           previous != seasonYear {
+        if let previous = subscribedSeasonYear, previous != seasonYear {
             await unsubscribeFromCancellationTopic(seasonYear: previous)
         }
+
         #if canImport(FirebaseMessaging)
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        let subscribeError: String? = await withCheckedContinuation { continuation in
             Messaging.messaging().subscribe(toTopic: topic) { error in
-                Task { @MainActor in
-                    if let error {
-                        self.lastTopicSubscribeError = error.localizedDescription
-                        #if DEBUG
-                        print("FCM subscribe failed for \(topic): \(error.localizedDescription)")
-                        #endif
-                    } else {
-                        self.lastTopicSubscribeError = nil
-                        #if DEBUG
-                        print("FCM subscribed to topic \(topic)")
-                        #endif
-                    }
-                }
-                continuation.resume()
+                continuation.resume(returning: error?.localizedDescription)
             }
         }
+        if let subscribeError {
+            isSubscribedToTopic = false
+            lastTopicSubscribeError = subscribeError
+            #if DEBUG
+            print("FCM subscribe failed for \(topic): \(subscribeError)")
+            #endif
+            return
+        }
+
+        isSubscribedToTopic = true
+        lastTopicSubscribeError = nil
+        UserDefaults.standard.set(seasonYear, forKey: subscribedTopicYearKey)
+        #if DEBUG
+        print("FCM subscribed to topic \(topic)")
+        if let fcmToken = Messaging.messaging().fcmToken {
+            print("FCM token (for Firebase test message): \(fcmToken)")
+        }
+        #endif
         #else
+        isSubscribedToTopic = false
         lastTopicSubscribeError = "Firebase Messaging not linked in this build."
         #endif
-        UserDefaults.standard.set(seasonYear, forKey: subscribedTopicYearKey)
     }
 
     private func unsubscribeFromCancellationTopic(seasonYear: Int) async {
@@ -273,6 +328,7 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
             }
         }
         #endif
+        isSubscribedToTopic = false
     }
 
     static func cancellationTopic(seasonYear: Int) -> String {
@@ -299,12 +355,18 @@ extension CancellationNotificationManager: UNUserNotificationCenterDelegate {
 #if canImport(FirebaseMessaging)
 extension CancellationNotificationManager: MessagingDelegate {
     nonisolated func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        guard fcmToken != nil else { return }
+        #if DEBUG
+        if let fcmToken {
+            print("FCM registration token: \(fcmToken)")
+        }
+        #endif
         Task { @MainActor in
-            guard Messaging.messaging().apnsToken != nil else {
+            guard isEnabled else { return }
+            if Messaging.messaging().apnsToken == nil {
                 #if DEBUG
-                print("FCM registration token received; waiting for APNs token before topic subscribe")
+                print("FCM token received; waiting for APNs token before topic subscribe")
                 #endif
+                UIApplication.shared.registerForRemoteNotifications()
                 return
             }
             #if DEBUG

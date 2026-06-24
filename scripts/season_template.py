@@ -155,10 +155,100 @@ def _film_spec(
     return (title, month, day, {**kwargs, "sunset_at": _sunset_at_for(season_year, month, day, sunset_table)})
 
 
+# English synopses for the 2026 programme (French remains in each `blurb=`).
+_BLURB_EN_2026: dict[str, str] = {
+    "Back to the Future": (
+        "Marty, hurled to 1955 in a DeLorean, must get his parents to fall for each other "
+        "or vanish from the future. Where he's going, he doesn't need roads!"
+    ),
+    "La Famille Bélier": (
+        "Paula, the only hearing member of a deaf family, discovers her voice and must choose "
+        "between belting out Michel Sardou or staying the rock of her family."
+    ),
+    "Billy Elliot": (
+        "A miner's son discovers dance and dreams of ballet instead of boxing gloves."
+    ),
+    "Flow": (
+        "A cat wakes in a flooded world and boards a boat with other animals to survive "
+        "a silent deluge. Noah's Ark, minus Noah."
+    ),
+    "Sauvages": (
+        "In Borneo, a teen and a baby orangutan confront deforestation and discover "
+        "their bond with nature and each other."
+    ),
+    "Love and Other Disasters": (
+        "A Vogue assistant overrates her gaydar. Her gay best friend falls head over heels. "
+        "Romantic mix-ups and small disasters ensue…"
+    ),
+    "Paddington": (
+        "A Peruvian bear arrives in London with his hat, his love of marmalade, and… his clumsiness. "
+        "His adoptive family's patience is sorely tested. But who could stay mad at such a polite little bear?"
+    ),
+    "Soirées courts-métrages": "A selection of Swiss and international short films.",
+    "I Am Not a Witch": (
+        "A girl is accused of witchcraft and sent to a camp where she must survive "
+        "an absurd, cruel system."
+    ),
+    "Singin' in the Rain": (
+        "Hollywood goes from silent to sound; Gene Kelly dances in the rain, a starlet lip-syncs badly."
+    ),
+    "Wadjda": "A Saudi girl dreams of a forbidden bicycle and defies the rules. Pedal, Wadjda, pedal!",
+    "The Girl Who Leapt Through Time": (
+        "A teen discovers she can rewind time. What could possibly go wrong?"
+    ),
+    "CHOREOKE": "Sing along to the screen: French and international hits under the stars.",
+    "Jumanji: Welcome to the Jungle": (
+        "Four teens trapped in a cursed video game must survive a jungle full of booby traps and cheesy clichés."
+    ),
+    "Bon Schuur Ticino (Ciao-ciao bourbine)": (
+        "In Switzerland, an absurd popular initiative triggers national chaos between regions "
+        "that no longer understand each other at all. Grüezi!"
+    ),
+    "Portrait de la jeune fille en feu": (
+        "A painter must complete a young woman's portrait as a forbidden passion slowly grows. "
+        "Hurray for lesbians!"
+    ),
+    "BlacKkKlansman": (
+        "In the 1970s, a Black detective infiltrates the Ku Klux Klan by phone. "
+        "He'll need a stand-in to go undercover…"
+    ),
+    "Much Ado About Nothing": (
+        "Two couples flirt, spar, and fall in love in a Shakespearean comedy of misunderstandings "
+        "worthy of a telenovela."
+    ),
+    "The Mummy": (
+        "A mercenary with perfect hair and a clumsy librarian have awakened Imhotep's mummy. "
+        "He's not very happy."
+    ),
+    "Lo que quisimos ser": (
+        "Two strangers invent a love story to escape their reality, "
+        "and end up blurring fiction and feeling."
+    ),
+    "Ocean's Eleven": (
+        "A slick casino heist brings eleven pros together for a precision job at the heart of Las Vegas, "
+        "set to funky jazz."
+    ),
+    "Everything Everywhere All at Once": (
+        "A woman does her taxes, then saves the multiverse and her dysfunctional family across parallel realities. "
+        "Kung fu, existential bagel: it's chaos, and it's magnificent."
+    ),
+    "Baahubali 2: The Conclusion": (
+        "A mighty hero uncovers his royal past and launches an epic war to reclaim a stolen throne "
+        "and avenge his lineage."
+    ),
+    "Intouchables": (
+        "A quadriplegic aristocrat hires a caregiver from the projects who introduces him to (among other things) disco."
+    ),
+}
+
+
+# Official 2026 programme (schema v3: legalAge + recommendedAge on each screening).
 def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
     sunset_table = _load_sunset_times_2026()
 
     def f(title: str, month: int, day: int, **kwargs: Any) -> tuple[str, int, int, dict[str, Any]]:
+        if title in _BLURB_EN_2026:
+            kwargs.setdefault("blurb_en", _BLURB_EN_2026[title])
         return _film_spec(title, month, day, sunset_table, season_year, **kwargs)
 
     return [
@@ -167,29 +257,43 @@ def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
             "9–12 juillet",
             [
                 f(
-                    "Grease",
-                    7,
-                    9,
-                    minutes=110,
-                    blurb="Ouverture de la saison : comédie musicale des années 50 au lycée Rydell.",
-                    poster_key="grease",
-                ),
-                f("La Grande Vadrouille", 7, 10, minutes=132, blurb="Classique absurde de la Seconde Guerre mondiale avec Bourvil et de Funès."),
-                f(
                     "Back to the Future",
                     7,
-                    11,
+                    9,
                     minutes=116,
-                    blurb="Voyage dans le temps et rock'n'roll des années 1980.",
+                    legal_age=10,
+                    blurb="Marty, propulsé en 1955 via une DeLorean, doit aider ses parents à se draguer pour ne pas disparaître du futur. Là où il va, il n'y a pas besoin de routes !",
                     poster_key="back-to-the-future",
                 ),
                 f(
-                    "The Grand Budapest Hotel",
+                    "La Famille Bélier",
+                    7,
+                    10,
+                    minutes=105,
+                    legal_age=8,
+                    recommended_age=12,
+                    blurb="Paula, seule entendante d'une famille sourde, découvre sa voix et doit choisir entre chanter du Michel Sardou ou rester le pilier de sa famille.",
+                    poster_key="la-famille-belier",
+                ),
+                f(
+                    "Billy Elliot",
+                    7,
+                    11,
+                    minutes=110,
+                    legal_age=10,
+                    recommended_age=12,
+                    blurb="Un gamin fils de mineur découvre la danse et rêve de ballet plutôt que de gants de boxe.",
+                    poster_key="billy-elliot",
+                ),
+                f(
+                    "Flow",
                     7,
                     12,
-                    minutes=100,
-                    blurb="Farce colorée et nostalgique signée Wes Anderson.",
-                    poster_key="the-grand-budapest-hotel",
+                    minutes=85,
+                    legal_age=6,
+                    recommended_age=8,
+                    blurb="Un chat se réveille dans un monde submergé et embarque sur un bateau avec d'autres animaux pour survivre à un déluge silencieux. L'Arche sans Noé.",
+                    poster_key="flow",
                 ),
             ],
         ),
@@ -197,47 +301,85 @@ def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
             "w2",
             "16–19 juillet",
             [
-                f("Jurassic Park", 7, 16, minutes=127, blurb="Les dinosaures sortent de leur enclos — le blockbuster paranoïaque de Spielberg."),
-                f("Kung Fu Panda", 7, 17, minutes=92, blurb="Un panda maladroit devient un héros de légende."),
                 f(
-                    "Soirée choréoké",
+                    "Sauvages",
+                    7,
+                    16,
+                    minutes=87,
+                    legal_age=6,
+                    recommended_age=8,
+                    blurb="À Bornéo, une ado et un bébé orang-outan affrontent la déforestation et découvrent leur lien à la nature et aux autres.",
+                    poster_key="sauvages",
+                ),
+                f(
+                    "Love and Other Disasters",
+                    7,
+                    17,
+                    minutes=90,
+                    legal_age=7,
+                    recommended_age=12,
+                    blurb="Une assistante chez Vogue surestime son gaydar. Son meilleur ami homosexuel a un coup de foudre. S'ensuivent quiproquos romantiques et autres petits désastres…",
+                    poster_key="love-and-other-disasters",
+                ),
+                f(
+                    "Paddington",
                     7,
                     18,
-                    minutes=None,
-                    blurb="Chantez devant l'écran : tubes français et internationaux sous les étoiles.",
-                    poster_key="soirée-choréoké",
+                    minutes=95,
+                    legal_age=0,
+                    recommended_age=6,
+                    blurb="Un ours péruvien débarque à Londres avec son chapeau, son amour de la marmelade et… sa maladresse. La patience de sa famille adoptive est mise à rude épreuve. Mais qui peut en vouloir à un ourson si poli ?",
+                    poster_key="paddington",
                 ),
-                f("Les Choristes", 7, 19, minutes=97, blurb="Un professeur de musique transforme la vie d'élèves en pensionnat."),
+                f(
+                    "Soirées courts-métrages",
+                    7,
+                    19,
+                    legal_age=16,
+                    blurb="Sélection de courts métrages suisses et internationaux.",
+                    poster_key="soiree-court-metrages",
+                ),
             ],
         ),
         (
             "w3",
             "23–26 juillet",
             [
-                f("Intouchables", 7, 23, minutes=112, blurb="Comédie française sur une amitié improbable entre un aristocrate et son aide."),
                 f(
-                    "Parasite",
+                    "I Am Not a Witch",
+                    7,
+                    23,
+                    minutes=93,
+                    legal_age=16,
+                    blurb="Une fillette est accusée de sorcellerie et envoyée dans un camp, où elle doit survivre à un système absurde et cruel.",
+                    poster_key="i-am-not-a-witch",
+                ),
+                f(
+                    "Singin' in the Rain",
                     7,
                     24,
-                    minutes=132,
-                    blurb="Thriller social coréen sur deux familles aux antipodes.",
-                    poster_key="parasite",
+                    minutes=103,
+                    legal_age=7,
+                    blurb="Hollywood passe du muet au parlant, Gene Kelly danse sous la pluie, une starlette chante faux.",
+                    poster_key="singin-in-the-rain",
                 ),
                 f(
-                    "Flashdance",
+                    "Wadjda",
                     7,
                     25,
-                    minutes=95,
-                    blurb="Une soudeuse rêve de devenir danseuse — tubes et chorégraphies des années 80.",
-                    poster_key="flashdance",
+                    minutes=98,
+                    legal_age=10,
+                    blurb="Une fillette saoudienne rêve de vélo interdit et défie les règles. Roule, Wadjda, roule !",
+                    poster_key="wadjda",
                 ),
                 f(
-                    "Soirée courts-métrages",
+                    "The Girl Who Leapt Through Time",
                     7,
                     26,
-                    minutes=None,
-                    blurb="Sélection de courts métrages suisses et internationaux.",
-                    poster_key="soirée-court-métrages",
+                    minutes=98,
+                    legal_age=10,
+                    blurb="Une ado découvre qu'elle peut remonter le temps. Qu'est-ce qui pourrait mal tourner ?",
+                    poster_key="the-girl-who-leapt-through-time",
                 ),
             ],
         ),
@@ -246,29 +388,40 @@ def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
             "30 juillet – 2 août",
             [
                 f(
-                    "Notting Hill",
+                    "CHOREOKE",
                     7,
                     30,
-                    minutes=124,
-                    blurb="Romance londonienne entre une star et un libraire.",
-                    poster_key="notting-hill",
+                    blurb="Chantez devant l'écran : tubes français et internationaux sous les étoiles.",
+                    poster_key="soiree-choreoke",
                 ),
-                f("Delicatessen", 7, 31, minutes=99, blurb="Comédie noire et burlesque dans un immeuble post-apocalyptique."),
                 f(
-                    "Kirikou et la Sorcière",
+                    "Jumanji: Welcome to the Jungle",
+                    7,
+                    31,
+                    minutes=119,
+                    legal_age=12,
+                    blurb="Quatre ados coincés dans un jeu vidéo maudit doivent survivre dans une jungle pleine de pièges explosifs et de clichés ringards.",
+                    poster_key="jumanji-welcome-to-the-jungle",
+                ),
+                f(
+                    "Bon Schuur Ticino (Ciao-ciao bourbine)",
                     8,
                     1,
-                    minutes=71,
-                    blurb="Conte africain en animation pour petits et grands.",
-                    poster_key="kirikou-et-la-sorciere",
+                    minutes=88,
+                    legal_age=6,
+                    recommended_age=10,
+                    blurb="En Suisse, une initiative populaire absurde déclenche un chaos national entre régions qui ne se comprennent plus du tout. Grüezi !",
+                    poster_key="bon-schuur-ticino",
                 ),
                 f(
-                    "Raiders of the Lost Ark",
+                    "Portrait de la jeune fille en feu",
                     8,
                     2,
-                    minutes=115,
-                    blurb="Indiana Jones et une course contre la montre pour l'Arche d'alliance.",
-                    poster_key="raiders-of-the-lost-ark",
+                    minutes=121,
+                    legal_age=12,
+                    recommended_age=16,
+                    blurb="Une peintre doit réaliser le portrait d'une jeune femme, alors qu'une passion interdite naît progressivement. Bravo les lesbiennes !",
+                    poster_key="portrait-de-la-jeune-fille-en-feu",
                 ),
             ],
         ),
@@ -277,30 +430,42 @@ def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
             "6–9 août",
             [
                 f(
-                    "Your Name.",
+                    "BlacKkKlansman",
                     8,
                     6,
-                    minutes=106,
-                    blurb="Deux adolescents échangent leurs corps à distance — anime poétique.",
-                    search_title="Your Name",
-                    poster_key="your-name",
+                    minutes=135,
+                    legal_age=12,
+                    recommended_age=14,
+                    blurb="Dans les années 70, un policier noir infiltre le Ku Klux Klan par téléphone. Il va avoir besoin d'une doublure pour aller sur le terrain…",
+                    poster_key="blackkklansman",
                 ),
                 f(
-                    "Cinema Paradiso",
+                    "Much Ado About Nothing",
                     8,
                     7,
-                    minutes=124,
-                    blurb="Hommage au cinéma de village et à l'amitié entre un projectionniste et un enfant.",
-                    poster_key="cinema-paradiso",
+                    minutes=111,
+                    legal_age=10,
+                    blurb="Deux couples se cherchent, se provoquent et s'aiment dans une comédie shakespearienne de malentendus digne d'une telenovela.",
+                    poster_key="much-ado-about-nothing",
                 ),
-                f("Forrest Gump", 8, 8, minutes=142, blurb="Une odyssée américaine vue par un homme simple et bon."),
                 f(
-                    "The Matrix",
+                    "The Mummy",
+                    8,
+                    8,
+                    minutes=125,
+                    legal_age=12,
+                    recommended_age=14,
+                    blurb="Un mercenaire au brushing impeccable et une bibliothécaire maladroite ont réveillé la momie d'Imhotep. Il est pas très content.",
+                    poster_key="the-mummy",
+                ),
+                f(
+                    "Lo que quisimos ser",
                     8,
                     9,
-                    minutes=136,
-                    blurb="Science-fiction et kung-fu : le monde n'est peut-être qu'une simulation.",
-                    poster_key="the-matrix",
+                    minutes=90,
+                    legal_age=7,
+                    blurb="Deux inconnus inventent une histoire d'amour pour échapper à leur réalité, et finissent par brouiller fiction et sentiments.",
+                    poster_key="lo-que-quisimos-ser",
                 ),
             ],
         ),
@@ -309,29 +474,42 @@ def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
             "13–16 août",
             [
                 f(
-                    "Soirée rattrapage",
+                    "Ocean's Eleven",
                     8,
                     13,
-                    minutes=None,
-                    blurb="Programme variable : films manqués ou invités de la saison.",
-                    poster_key="soirée-rattrapage",
+                    minutes=116,
+                    legal_age=10,
+                    recommended_age=14,
+                    blurb="Un braquage de casino ultra stylé réunit onze pros du crime pour un casse millimétré au cœur de Las Vegas sur fond de jazz funky.",
+                    poster_key="oceans-eleven",
                 ),
-                f("Casablanca", 8, 14, minutes=102, blurb="Romance et exil au Maroc pendant la guerre — classique intemporel."),
                 f(
-                    "RRR",
+                    "Everything Everywhere All at Once",
+                    8,
+                    14,
+                    minutes=139,
+                    legal_age=16,
+                    blurb="Une dame fait sa compta, puis sauve le multivers et sa relation dysfonctionnelle avec sa famille à travers plusieurs réalités parallèles. Kung-fu, bagel existentiel : c'est n'importe quoi, et c'est magnifique.",
+                    poster_key="everything-everywhere-all-at-once",
+                ),
+                f(
+                    "Baahubali 2: The Conclusion",
                     8,
                     15,
-                    minutes=187,
-                    blurb="Épopée indienne d'amitié, de rébellion et de numéros spectaculaires.",
-                    poster_key="rrr",
+                    minutes=167,
+                    legal_age=16,
+                    blurb="Un héros très balèze découvre son passé royal et lance une guerre épique pour reprendre un trône volé et venger sa lignée.",
+                    search_title="Baahubali 2: The Conclusion",
+                    poster_key="baahubali-2-the-conclusion",
                 ),
                 f(
-                    "Le Dîner de cons",
+                    "Intouchables",
                     8,
                     16,
-                    minutes=80,
-                    blurb="Farce française autour d'un dîner de fous entre amis.",
-                    poster_key="le-diner-de-cons",
+                    minutes=112,
+                    legal_age=10,
+                    blurb="Un aristocrate tétraplégique engage un aide-soignant venu de banlieue qui lui fait découvrir (entre autres) le disco.",
+                    poster_key="intouchables",
                 ),
             ],
         ),
@@ -355,8 +533,11 @@ def build_season_document(season_year: int, template: list[WeekSpec]) -> dict:
                     canceled=kwargs.get("canceled", False),
                     minutes=kwargs.get("minutes"),
                     blurb=kwargs.get("blurb", ""),
+                    blurb_en=kwargs.get("blurb_en"),
                     search_title=kwargs.get("search_title"),
                     poster_key=kwargs.get("poster_key"),
+                    legal_age=kwargs.get("legal_age"),
+                    recommended_age=kwargs.get("recommended_age"),
                     sunset_at=kwargs.get("sunset_at"),
                 )
             )
@@ -369,7 +550,7 @@ def build_season_document(season_year: int, template: list[WeekSpec]) -> dict:
         )
 
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "seasonYear": season_year,
         "updatedAt": datetime.now(TZ).isoformat(timespec="seconds"),
         "weeks": weeks,
