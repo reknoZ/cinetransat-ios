@@ -76,12 +76,8 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
         if let err = lastTopicSubscribeError {
             return err
         }
-        if isSubscribedToTopic, let year = subscribedSeasonYear {
-            let topic = Self.cancellationTopic(seasonYear: year)
-            return String(
-                format: L10n.text("settings_notifications_status_ready", language: language),
-                topic
-            )
+        if isSubscribedToTopic {
+            return nil
         }
         if !hasAPNsToken {
             return L10n.text("settings_notifications_status_waiting_apns", language: language)

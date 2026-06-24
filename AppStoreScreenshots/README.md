@@ -16,7 +16,7 @@ Apple scales the largest iPhone set down for smaller phones. You do not need sep
 | File | Screen |
 |------|--------|
 | `01-program.png` → `program.png` | Programme tab, week 1 with posters |
-| `detail.png` | Film detail (E.T.) |
+| `detail.png` | Film detail (Back to the Future) |
 | `watchlist.png` | Watch list with sample films |
 | `info.png` | Practical info |
 | `settings.png` | Settings (language, notifications) |
@@ -34,7 +34,7 @@ Optional environment variables:
 - `IPAD_DEVICE` — default `iPad Pro 13-inch (M5)`
 - `CAPTURE_IPAD=0` — skip iPad captures
 
-Screenshot mode uses bundled 2025 programme data (no Firebase splash) and a clean 9:41 status bar.
+Screenshot mode uses bundled `BundledSeason-2026.json` (week 1: 9–12 juillet) with posters from Hosting, no Firebase splash, and a clean 9:41 status bar.
 
 ## Upload order (suggested)
 

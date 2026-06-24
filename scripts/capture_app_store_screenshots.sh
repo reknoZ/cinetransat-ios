@@ -71,7 +71,11 @@ raise SystemExit('Simulator not found: ' + name)
     echo "    Capturing $out_subdir/$page.png"
     xcrun simctl terminate "$udid" "$BUNDLE_ID" >/dev/null 2>&1 || true
     xcrun simctl launch "$udid" "$BUNDLE_ID" -AppStoreScreenshots -ScreenshotPage "$page" >/dev/null
-    sleep 2.5
+    if [[ "$page" == "program" ]]; then
+      sleep 4
+    else
+      sleep 3
+    fi
     xcrun simctl io "$udid" screenshot "$OUT_DIR/$out_subdir/${page}.png"
   done
 

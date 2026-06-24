@@ -61,6 +61,15 @@ enum FestivalProgramFeedDecoder {
         return (seasonYear: doc.seasonYear, weeks: weeks)
     }
 
+    /// Bundled `BundledSeason-{year}.json` in the app target (App Store screenshots, offline fallback).
+    static func loadBundledSeason(year: Int) -> (seasonYear: Int, weeks: [FestivalWeek])? {
+        guard let url = Bundle.main.url(forResource: "BundledSeason-\(year)", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            return nil
+        }
+        return try? decodeProgram(from: data)
+    }
+
     private static func mapScreening(_ doc: ScreeningDocument) throws -> Screening {
         guard let startsAt = parseDate(doc.startsAt), let sunsetAt = parseDate(doc.sunset) else {
             throw FestivalProgramFeedError.invalidDate(doc.id)

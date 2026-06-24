@@ -9,10 +9,28 @@ import SwiftUI
 struct AppStoreScreenshotRoot: View {
     @EnvironmentObject private var program: FestivalProgramStore
     @EnvironmentObject private var watchList: WatchListStore
+    @State private var isReady = false
 
     private let page = AppStoreScreenshotConfiguration.page
 
     var body: some View {
+        Group {
+            if isReady {
+                screenshotContent
+            } else {
+                Color.festivalProgramBackground
+                    .ignoresSafeArea()
+            }
+        }
+        .environment(\.locale, Locale(identifier: AppLanguage.fr.localeIdentifier))
+        .task {
+            await AppStoreScreenshotConfiguration.prepareStores(program: program, watchList: watchList)
+            isReady = true
+        }
+    }
+
+    @ViewBuilder
+    private var screenshotContent: some View {
         Group {
             switch page {
             case .program:
@@ -34,10 +52,6 @@ struct AppStoreScreenshotRoot: View {
             case .settings:
                 ContentView(initialTab: .settings)
             }
-        }
-        .environment(\.locale, Locale(identifier: AppLanguage.fr.localeIdentifier))
-        .task {
-            AppStoreScreenshotConfiguration.prepareStores(program: program, watchList: watchList)
         }
     }
 }

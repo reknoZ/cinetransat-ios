@@ -62,7 +62,9 @@ final class FestivalProgramStore: ObservableObject {
     #endif
 
     init(startListeners: Bool = false) {
-        if startListeners {
+        if AppStoreScreenshotConfiguration.isActive {
+            prepareBundledDataForScreenshots()
+        } else if startListeners {
             loadCachedSeasonIfAvailable(year: FestivalPublicConfig.currentSeasonYear)
             startListening()
         }
@@ -70,18 +72,13 @@ final class FestivalProgramStore: ObservableObject {
 
     /// Bundled programme only — for App Store screenshots (no Firestore / splash).
     func prepareBundledDataForScreenshots() {
-        weeks = FestivalProgramBootstrap.weeks
-        seasonYear = FestivalProgramBootstrap.seasonYear
-        availableSeasonYears = [FestivalProgramBootstrap.seasonYear]
-        publicConfig = FestivalPublicConfig(
-            currentSeasonYear: FestivalProgramBootstrap.seasonYear,
-            websiteURL: FestivalPublicConfig.defaults.websiteURL,
-            practicalInfoURL: FestivalPublicConfig.defaults.practicalInfoURL,
-            contactEmail: FestivalPublicConfig.defaults.contactEmail,
-            facebookURL: FestivalPublicConfig.defaults.facebookURL,
-            instagramURL: FestivalPublicConfig.defaults.instagramURL,
-            posterBaseURL: FestivalPublicConfig.defaults.posterBaseURL
-        )
+        let year = FestivalPublicConfig.currentSeasonYear
+        let loaded = FestivalProgramFeedDecoder.loadBundledSeason(year: year)
+            ?? (seasonYear: FestivalProgramBootstrap.seasonYear, weeks: FestivalProgramBootstrap.weeks)
+        weeks = loaded.weeks
+        seasonYear = loaded.seasonYear
+        availableSeasonYears = [loaded.seasonYear]
+        publicConfig = .defaults
         source = .bundled
         lastErrorMessage = nil
         lastUpdatedAt = nil

@@ -10,6 +10,12 @@ enum AppSupport {
     /// In-app feedback and bug reports (not the festival programme contact).
     static let feedbackEmail = "feedback@heewhack.com"
 
+    static let appStoreAppleID = "6775492952"
+
+    static var appStoreReviewURL: URL? {
+        URL(string: "https://apps.apple.com/app/id\(appStoreAppleID)?action=write-review")
+    }
+
     static func feedbackMailSubject(language: AppLanguage) -> String {
         L10n.text("settings_feedback_subject", language: language)
     }

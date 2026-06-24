@@ -51,7 +51,7 @@ enum L10n {
             ),
             "settings_about_version": ("Version", "Version"),
             "settings_language_help": ("Le changement de langue s’applique immédiatement à l’interface principale.", "Language changes apply immediately to the main interface."),
-            "about_intro": ("Six semaines, quatre soirs par semaine : cinéma gratuit en plein air après le coucher du soleil.", "Six weeks, four nights each week: free open-air cinema after sunset."),
+            "about_intro": ("Six semaines en été, quatre soirs par semaine : cinéma gratuit en plein air après le coucher du soleil.", "Six weeks in summer, four nights each week: free open-air cinema after sunset."),
             "festival_rattrapage_vote": ("Vote pour la Soirée Rattrapage : bientôt disponible", "Vote for Soirée Rattrapage: coming soon"),
             "screening_passed": ("Passé", "Passed"),
             "detail_legal_age": ("Âge légal", "Legal age"),
@@ -265,10 +265,6 @@ enum L10n {
             "settings_notifications_denied": (
                 "Autorisez les notifications dans Réglages iOS pour recevoir les alertes.",
                 "Allow notifications in iOS Settings to receive alerts."
-            ),
-            "settings_notifications_status_ready": (
-                "Abonné à %@ — alertes même app fermée.",
-                "Subscribed to %@ — alerts work when the app is closed."
             ),
             "settings_notifications_status_waiting_apns": (
                 "En attente de l’enregistrement Apple Push…",

@@ -133,19 +133,32 @@ struct MovieDetailView: View {
                     .font(.body)
                     .foregroundStyle(.primary)
 
-                HStack(spacing: 20) {
-                    if screening.externalSearchLinksEnabled {
-                        Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
+                HStack(alignment: .center) {
+                    HStack(spacing: 20) {
+                        if screening.externalSearchLinksEnabled {
+                            Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
+                                Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
+                            }
+                            Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
+                                Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
+                            }
+                        } else {
                             Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
-                        }
-                        Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
+                                .foregroundStyle(.secondary)
                             Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
+                                .foregroundStyle(.secondary)
                         }
-                    } else {
-                        Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
+                    }
+
+                    Spacer(minLength: 12)
+
+                    if let year = screening.releaseYear {
+                        Text(verbatim: "\(year)")
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
-                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                            .accessibilityLabel(L10n.text("detail_film_year", language: appLanguage))
+                            .accessibilityValue("\(year)")
                     }
                 }
             }
@@ -218,13 +231,6 @@ private struct ScreeningFactsGrid: View {
                 label: L10n.text("detail_recommended_age", language: language),
                 value: screening.recommendedAge.map { "\($0)+" } ?? "—",
                 muted: screening.recommendedAge == nil
-            ),
-            Column(
-                id: 5,
-                symbol: "calendar",
-                label: L10n.text("detail_film_year", language: language),
-                value: screening.releaseYear.map { "\($0)" } ?? "—",
-                muted: screening.releaseYear == nil
             ),
         ]
     }

@@ -23,27 +23,14 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section(L10n.text("settings_language", language: appLanguage)) {
-                    HStack {
-                        Text(L10n.text("settings_language", language: appLanguage))
-                        Spacer()
-                        Menu {
-                            ForEach(AppLanguage.allCases) { language in
-                                Button {
-                                    appLanguageRaw = language.rawValue
-                                } label: {
-                                    Text(language.displayName)
-                                }
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Text(appLanguage.displayName)
-                                Image(systemName: "chevron.down")
-                                    .font(.caption.weight(.semibold))
-                            }
-                            .foregroundStyle(.primary)
+                    Picker("", selection: $appLanguageRaw) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.displayName).tag(language.rawValue)
                         }
                     }
-
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .accessibilityLabel(L10n.text("settings_language", language: appLanguage))
                 }
 
                 Section(L10n.text("settings_notifications", language: appLanguage)) {
@@ -75,6 +62,18 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    Button(L10n.text("settings_send_feedback", language: appLanguage)) {
+                        openFeedback()
+                    }
+
+                    Button(L10n.text("settings_rate_app", language: appLanguage)) {
+                        if let url = AppSupport.appStoreReviewURL {
+                            openURL(url)
+                        }
+                    }
+                }
+
                 Section(L10n.text("settings_about_section", language: appLanguage)) {
                     LabeledContent(L10n.text("settings_about_version", language: appLanguage)) {
                         Text(AppMetadata.versionLabel)
@@ -83,18 +82,6 @@ struct SettingsView: View {
                     Text(AppMetadata.copyright)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
-                }
-
-                Section {
-                    Button(L10n.text("settings_send_feedback", language: appLanguage)) {
-                        openFeedback()
-                    }
-
-                    Button(L10n.text("settings_rate_app", language: appLanguage)) {
-                        if let url = URL(string: "https://apps.apple.com/app/id0000000000") {
-                            openURL(url)
-                        }
-                    }
                 }
             }
             .navigationTitle(L10n.text("settings_title", language: appLanguage))

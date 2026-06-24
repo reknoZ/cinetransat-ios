@@ -52,20 +52,31 @@ enum AppStoreScreenshotConfiguration {
     }
 
     @MainActor
-    static func prepareStores(program: FestivalProgramStore, watchList: WatchListStore) {
+    static func prepareStores(program: FestivalProgramStore, watchList: WatchListStore) async {
         guard isActive else { return }
         program.prepareBundledDataForScreenshots()
         let ids = [
-            "20250710", // Les Bronzés
-            "20250717", // E.T.
-            "20250726", // Paddington 2
+            "20260709", // Back to the Future
+            "20260710", // La Famille Bélier
+            "20260711", // Billy Elliot
         ]
         watchList.replaceScreeningIDs(Set(ids), persist: false)
+
+        let weekOnePosterKeys = Set(
+            program.weeks.first?.orderedScreenings
+                .filter { !$0.usesTBDPlaceholderPoster }
+                .map(\.posterKey) ?? []
+        )
+        _ = await program.prefetchPostersForCurrentSeason(posterKeysFilter: weekOnePosterKeys.isEmpty ? nil : weekOnePosterKeys)
+        if page == .detail || page == .watchlist {
+            let detailKeys = Set([showcaseScreening(in: program).posterKey])
+            _ = await program.prefetchPostersForCurrentSeason(posterKeysFilter: detailKeys)
+        }
     }
 
     @MainActor
     static func showcaseScreening(in program: FestivalProgramStore) -> Screening {
-        program.allScreenings.first { $0.title == "E.T. l'extra-terrestre" }
+        program.allScreenings.first { $0.title == "Back to the Future" }
             ?? program.allScreenings.first!
     }
 }

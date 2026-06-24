@@ -14,6 +14,9 @@ enum AppTab: Hashable {
 }
 
 struct ContentView: View {
+    /// Set to `true` when the voting / festival tab ships.
+    private static let isFestivalTabVisible = false
+
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var selectedTab: AppTab
 
@@ -48,12 +51,14 @@ struct ContentView: View {
                 .tag(AppTab.info)
                 .accessibilityIdentifier("tab_info")
 
-            AboutFestivalView()
-                .tabItem {
-                    Label(L10n.text("tab_festival", language: appLanguage), systemImage: "sparkles")
-                }
-                .tag(AppTab.festival)
-                .accessibilityIdentifier("tab_festival")
+            if Self.isFestivalTabVisible {
+                AboutFestivalView()
+                    .tabItem {
+                        Label(L10n.text("tab_festival", language: appLanguage), systemImage: "sparkles")
+                    }
+                    .tag(AppTab.festival)
+                    .accessibilityIdentifier("tab_festival")
+            }
 
             SettingsView()
                 .tabItem {
@@ -61,6 +66,11 @@ struct ContentView: View {
                 }
                 .tag(AppTab.settings)
                 .accessibilityIdentifier("tab_settings")
+        }
+        .onAppear {
+            if !Self.isFestivalTabVisible, selectedTab == .festival {
+                selectedTab = .program
+            }
         }
     }
 }
