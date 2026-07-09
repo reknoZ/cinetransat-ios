@@ -7,19 +7,18 @@ import Foundation
 import SwiftUI
 import Combine
 
-/// Screenings the user marks as “planning to watch”. Stored on-device only.
-///
-/// A **total audience / headcount** for each screening needs a synced backend
-/// (e.g. Firestore document per `Screening.watchListID` with an aggregate counter).
-/// This store does not claim to represent other people’s plans.
+/// Screenings the user marks as “planning to watch”. Stored on-device; anonymous aggregate
+/// counts are synced to Firestore when the user adds or removes an entry.
 @MainActor
 final class WatchListStore: ObservableObject {
     @Published private(set) var screeningIDs: Set<String>
 
     /// Kept for continuity with earlier builds (“favorites”).
     private let defaultsKey = "favorite_screening_ids"
+    private let statsStore: WatchListStatsStore
 
-    init() {
+    init(statsStore: WatchListStatsStore) {
+        self.statsStore = statsStore
         let saved = UserDefaults.standard.stringArray(forKey: defaultsKey) ?? []
         screeningIDs = Set(saved)
     }
@@ -28,14 +27,17 @@ final class WatchListStore: ObservableObject {
         screeningIDs.contains(screening.watchListID)
     }
 
-    func toggle(_ screening: Screening, mayAdd: Bool = true) {
+    func toggle(_ screening: Screening, seasonYear: Int, mayAdd: Bool = true) {
         let id = screening.watchListID
         if screeningIDs.contains(id) {
             screeningIDs.remove(id)
+            persist()
+            Task { await statsStore.recordDelta(screeningId: id, seasonYear: seasonYear, delta: -1) }
         } else if mayAdd {
             screeningIDs.insert(id)
+            persist()
+            Task { await statsStore.recordDelta(screeningId: id, seasonYear: seasonYear, delta: 1) }
         }
-        persist()
     }
 
     func replaceScreeningIDs(_ ids: Set<String>, persist shouldPersist: Bool = true) {
@@ -52,7 +54,19 @@ final class WatchListStore: ObservableObject {
             .sorted { $0.startsAt < $1.startsAt }
     }
 
+    func syncAnonymousStatsWithLocalWatchList(seasonYear: Int) async {
+        await statsStore.syncWithLocalWatchList(screeningIDs, seasonYear: seasonYear)
+    }
+
     private func persist() {
         UserDefaults.standard.set(Array(screeningIDs).sorted(), forKey: defaultsKey)
+    }
+}
+
+extension WatchListStore {
+    /// Preview / tests without Firestore.
+    @MainActor
+    static func preview(statsStore: WatchListStatsStore) -> WatchListStore {
+        WatchListStore(statsStore: statsStore)
     }
 }

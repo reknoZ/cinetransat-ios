@@ -144,6 +144,10 @@ def screening(
     legal_age: int | None = None,
     recommended_age: int | None = None,
     sunset_at: tuple[int, int] | None = None,
+    audio_language: str | None = None,
+    audio_language_en: str | None = None,
+    subtitle_language: str | None = None,
+    subtitle_language_en: str | None = None,
 ) -> dict:
     sunset_h, sunset_mi = sunset_at if sunset_at is not None else (21, 18)
     sid = f"{y:04d}{m:02d}{d:02d}"
@@ -166,6 +170,14 @@ def screening(
         doc["legalAge"] = legal_age
     if recommended_age is not None:
         doc["recommendedAge"] = recommended_age
+    if audio_language is not None:
+        doc["audioLanguage"] = audio_language
+    if audio_language_en is not None:
+        doc["audioLanguageEn"] = audio_language_en
+    if subtitle_language is not None:
+        doc["subtitleLanguage"] = subtitle_language
+    if subtitle_language_en is not None:
+        doc["subtitleLanguageEn"] = subtitle_language_en
     return doc
 
 

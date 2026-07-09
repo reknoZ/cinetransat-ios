@@ -33,6 +33,10 @@ struct ScreeningDocument: Codable {
     let runtimeMinutes: Int?
     let legalAge: Int?
     let recommendedAge: Int?
+    let audioLanguage: String?
+    let audioLanguageEn: String?
+    let subtitleLanguage: String?
+    let subtitleLanguageEn: String?
     let searchTitle: String?
     let posterURL: String?
     let posterKey: String?
@@ -111,6 +115,10 @@ enum FestivalProgramFeedDecoder {
             runtimeMinutes: doc.runtimeMinutes,
             legalAge: doc.legalAge,
             recommendedAge: doc.recommendedAge,
+            audioLanguage: doc.audioLanguage,
+            audioLanguageEn: doc.audioLanguageEn,
+            subtitleLanguage: doc.subtitleLanguage,
+            subtitleLanguageEn: doc.subtitleLanguageEn,
             searchTitle: resolvedSearchTitle,
             posterURL: doc.posterURL,
             posterKey: resolvedPosterKey

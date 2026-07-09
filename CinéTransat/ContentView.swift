@@ -68,6 +68,11 @@ struct ContentView: View {
                 .tag(AppTab.settings)
                 .accessibilityIdentifier("tab_settings")
         }
+        .festivalScreenBackground()
+        .preferredColorScheme(.dark)
+        .toolbarBackground(Color.festivalProgramBackground, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarColorScheme(.dark, for: .tabBar)
         .onAppear {
             if !Self.isFestivalTabVisible, selectedTab == .festival {
                 selectedTab = .program
@@ -97,12 +102,15 @@ private struct AboutFestivalView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .navigationTitle(L10n.text("tab_festival", language: appLanguage))
+            .festivalScreenBackground()
         }
     }
 }
 
 #Preview {
+    let stats = WatchListStatsStore()
     ContentView()
         .environmentObject(FestivalProgramStore.preview)
-        .environmentObject(WatchListStore())
+        .environmentObject(WatchListStore.preview(statsStore: stats))
+        .environmentObject(stats)
 }

@@ -380,9 +380,14 @@ final class FestivalProgramStore: ObservableObject {
 enum FirestorePaths {
     static let seasonsCollection = "seasons"
     static let publicConfig = "cinetransat/publicConfig"
+    static let watchlistStatsCollection = "watchlistStats"
 
     static func season(_ year: Int) -> String {
         "\(seasonsCollection)/\(year)"
+    }
+
+    static func watchlistStat(screeningId: String) -> String {
+        "\(watchlistStatsCollection)/\(screeningId)"
     }
 }
 

@@ -38,6 +38,7 @@ Each screening map:
 - `title`, `startsAt`, `sunset` (ISO-8601 strings, Europe/Zurich)
 - `isCanceled`, `synopsis`
 - `runtimeMinutes` (number or null)
+- `audioLanguage`, `audioLanguageEn`, `subtitleLanguage`, `subtitleLanguageEn` (optional strings — shown on film detail)
 - `searchTitle` (optional, used for IMDb/Allociné and default poster slug)
 - `posterKey` (optional) — which poster file to show (`paddington-2`, etc.). Defaults to a slug of `searchTitle` or `title`.
 - `posterURL` (optional) — full HTTPS URL (overrides template)
@@ -96,9 +97,31 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /watchlistStats/{screeningId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is int
+        && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is int
+        && request.resource.data.count >= 0
+        && (
+          request.resource.data.count == resource.data.get('count', 0) + 1
+          || request.resource.data.count == resource.data.get('count', 0) - 1
+        );
+      allow delete: if false;
+    }
   }
 }
 ```
+
+### Anonymous watch list stats
+
+Path: `watchlistStats/{screeningId}` — field `count` (integer). Document ID is the screening day key (`yyyyMMdd`), the same as `screenings[].id` in `seasons/{year}`.
+
+When a user adds or removes a film on their **on-device** watch list, the app increments or decrements `count` by 1. No user ID or device identifier is stored. Rules only allow ±1 per write (see [`firestore.rules`](../firestore.rules)).
+
+After changing rules, run `firebase deploy --only firestore:rules`.
 
 Optional CLI deploy (from repo root, after `npm install -g firebase-tools` and `firebase login`):
 

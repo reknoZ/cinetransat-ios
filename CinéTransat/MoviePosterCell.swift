@@ -161,6 +161,12 @@ struct MoviePosterCell: View {
             }
         }
         .modifier(PosterSizingModifier(posterWidth: posterWidth))
+        .shadow(color: .black.opacity(0.35), radius: compact ? 7 : 10, x: 0, y: compact ? 4 : 5)
+        .shadow(color: Color.festivalAccent.opacity(0.15), radius: compact ? 4 : 6, x: 0, y: 0)
+        .overlay {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(Color.festivalAccent, lineWidth: 1)
+        }
         .opacity(screening.hasPassed ? 0.72 : 1)
         .saturation(screening.hasPassed ? 0.45 : 1)
     }
@@ -168,10 +174,13 @@ struct MoviePosterCell: View {
     private var watchListBookmarkLabel: some View {
         Image(systemName: isOnWatchList ? "bookmark.fill" : "bookmark")
             .font(compact ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
-            .foregroundStyle(isOnWatchList ? Color.white : Color.white.opacity(0.92))
+            .foregroundStyle(isOnWatchList ? Color.festivalAccent : Color.white.opacity(0.92))
             .padding(.horizontal, compact ? 6 : 8)
             .padding(.vertical, compact ? 5 : 6)
-            .background(Color.black.opacity(0.45), in: Circle())
+            .background(
+                (isOnWatchList ? Color.festivalProgramBackground : Color.black).opacity(0.72),
+                in: Circle()
+            )
             .padding(6)
     }
 
@@ -207,7 +216,6 @@ private struct PosterSizingModifier: ViewModifier {
             let h = w * 3 / 2
             content
                 .frame(width: w, height: h, alignment: .center)
-                .clipped()
         } else {
             content
                 .aspectRatio(2 / 3, contentMode: .fit)

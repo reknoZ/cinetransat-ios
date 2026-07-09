@@ -19,6 +19,10 @@ struct SettingsView: View {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
     }
 
+    private var navTitle: String {
+        L10n.text("settings_title", language: appLanguage)
+    }
+
     private var languageBinding: Binding<AppLanguage> {
         Binding(
             get: { AppLanguage(rawValue: appLanguageRaw) ?? .fr },
@@ -28,70 +32,82 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section(L10n.text("settings_language", language: appLanguage)) {
-                    Picker("", selection: languageBinding) {
-                        ForEach(AppLanguage.allCases) { language in
-                            Text(language.displayName).tag(language)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    settingsSection(title: L10n.text("settings_language", language: appLanguage)) {
+                        Picker("", selection: languageBinding) {
+                            ForEach(AppLanguage.allCases) { language in
+                                Text(language.displayName).tag(language)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .accessibilityLabel(L10n.text("settings_language", language: appLanguage))
                     }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .accessibilityLabel(L10n.text("settings_language", language: appLanguage))
-                }
 
-                Section(L10n.text("settings_notifications", language: appLanguage)) {
-                    if notificationManager.authorizationStatus == .denied {
-                        Text(L10n.text("settings_notifications_denied", language: appLanguage))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Toggle(isOn: notificationsToggleBinding) {
-                            Text(
-                                notificationManager.isEnabled
-                                    ? L10n.text("settings_notifications_on", language: appLanguage)
-                                    : L10n.text("settings_notifications_enable", language: appLanguage)
-                            )
-                        }
-                        Text(L10n.text("settings_notifications_help", language: appLanguage))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        if let status = notificationManager.deliveryStatusSummary(
-                            language: appLanguage,
-                            seasonYear: program.publicConfig.currentSeasonYear
-                        ) {
-                            Text(status)
-                                .font(.footnote)
-                                .foregroundStyle(
-                                    notificationManager.lastTopicSubscribeError != nil ? .orange : .secondary
+                    settingsSection(title: L10n.text("settings_notifications", language: appLanguage)) {
+                        if notificationManager.authorizationStatus == .denied {
+                            settingsFootnote(L10n.text("settings_notifications_denied", language: appLanguage))
+                        } else {
+                            Toggle(isOn: notificationsToggleBinding) {
+                                Text(
+                                    notificationManager.isEnabled
+                                        ? L10n.text("settings_notifications_on", language: appLanguage)
+                                        : L10n.text("settings_notifications_enable", language: appLanguage)
                                 )
+                                .foregroundStyle(Color.festivalAccent)
+                            }
+                            .tint(Color.festivalAccent)
+
+                            settingsFootnote(L10n.text("settings_notifications_help", language: appLanguage))
+
+                            if let status = notificationManager.deliveryStatusSummary(
+                                language: appLanguage,
+                                seasonYear: program.publicConfig.currentSeasonYear
+                            ) {
+                                settingsFootnote(
+                                    status,
+                                    color: notificationManager.lastTopicSubscribeError != nil
+                                        ? .orange
+                                        : Color.festivalAccent.opacity(0.8)
+                                )
+                            }
                         }
                     }
-                }
 
-                Section {
-                    Button(L10n.text("settings_send_feedback", language: appLanguage)) {
-                        openFeedback()
-                    }
-
-                    Button(L10n.text("settings_rate_app", language: appLanguage)) {
-                        if let url = AppSupport.appStoreReviewURL {
-                            openURL(url)
+                    settingsSection(title: nil) {
+                        settingsActionButton(L10n.text("settings_send_feedback", language: appLanguage)) {
+                            openFeedback()
+                        }
+                        settingsActionButton(L10n.text("settings_rate_app", language: appLanguage)) {
+                            if let url = AppSupport.appStoreReviewURL {
+                                openURL(url)
+                            }
                         }
                     }
-                }
 
-                Section(L10n.text("settings_about_section", language: appLanguage)) {
-                    LabeledContent(L10n.text("settings_about_version", language: appLanguage)) {
-                        Text(AppMetadata.versionLabel)
-                            .foregroundStyle(.secondary)
+                    settingsSection(title: L10n.text("settings_about_section", language: appLanguage)) {
+                        HStack {
+                            Text(L10n.text("settings_about_version", language: appLanguage))
+                                .foregroundStyle(Color.festivalAccent)
+                            Spacer()
+                            Text(AppMetadata.versionLabel)
+                                .foregroundStyle(Color.festivalAccent.opacity(0.8))
+                                .monospacedDigit()
+                        }
+
+                        settingsFootnote(AppMetadata.copyright)
                     }
-                    Text(AppMetadata.copyright)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .navigationTitle(L10n.text("settings_title", language: appLanguage))
+            .festivalScreenBackground()
+            .festivalPinkNavigationTitle(navTitle)
+            .toolbarBackground(Color.festivalProgramBackground, for: .navigationBar)
+            .tint(Color.festivalAccent)
             .sheet(isPresented: $showFeedbackMail) {
                 MailComposeView(
                     recipients: [AppSupport.feedbackEmail],
@@ -126,6 +142,41 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private func settingsSection<Content: View>(
+        title: String?,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let title {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color.festivalAccent)
+                    .textCase(nil)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                content()
+            }
+            .festivalCardChrome()
+        }
+    }
+
+    private func settingsFootnote(_ text: String, color: Color = Color.festivalAccent.opacity(0.8)) -> some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(color)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func settingsActionButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.body)
+                .foregroundStyle(Color.festivalAccent)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
     }
 
     private var notificationsToggleBinding: Binding<Bool> {
@@ -178,7 +229,9 @@ private enum AppMetadata {
 }
 
 #Preview {
+    let stats = WatchListStatsStore()
     SettingsView()
         .environmentObject(FestivalProgramStore.preview)
-        .environmentObject(WatchListStore())
+        .environmentObject(WatchListStore.preview(statsStore: stats))
+        .environmentObject(stats)
 }

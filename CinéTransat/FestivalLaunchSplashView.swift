@@ -35,7 +35,7 @@ struct FestivalLaunchSplashView: View {
                 Text(verbatim: "\(FestivalPublicConfig.currentSeasonYear)")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .tracking(4)
-                    .foregroundStyle(Color.festivalProgramTitle.opacity(0.72))
+                    .foregroundStyle(Color.festivalAccent)
                     .accessibilityLabel("Saison \(FestivalPublicConfig.currentSeasonYear)")
             }
             .scaleEffect(logoScale, anchor: .center)
@@ -44,7 +44,7 @@ struct FestivalLaunchSplashView: View {
                 if isLoading {
                     ProgressView()
                         .controlSize(.large)
-                        .tint(Color.festivalProgramTitle)
+                        .tint(Color.festivalAccent)
                         .offset(y: 52)
                         .transition(.opacity.combined(with: .scale(scale: 0.92)))
                         .accessibilityLabel("Chargement des affiches")

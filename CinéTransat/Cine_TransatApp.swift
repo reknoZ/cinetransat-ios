@@ -12,6 +12,7 @@ import FirebaseCore
 struct Cine_TransatApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var programStore: FestivalProgramStore
+    @StateObject private var watchListStatsStore: WatchListStatsStore
     @StateObject private var watchListStore: WatchListStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
@@ -21,12 +22,15 @@ struct Cine_TransatApp: App {
 
     init() {
         AppStoreScreenshotConfiguration.prepareEnvironment()
+        let statsStore = WatchListStatsStore()
+        _watchListStatsStore = StateObject(wrappedValue: statsStore)
+        _watchListStore = StateObject(wrappedValue: WatchListStore(statsStore: statsStore))
         if !AppStoreScreenshotConfiguration.isActive {
             FirebaseApp.configure()
             CancellationNotificationManager.installDelegates()
         }
+        FestivalAppearance.configure()
         _programStore = StateObject(wrappedValue: FestivalProgramStore(startListeners: false))
-        _watchListStore = StateObject(wrappedValue: WatchListStore())
     }
 
     var body: some Scene {
@@ -34,13 +38,17 @@ struct Cine_TransatApp: App {
             RootWithLaunchSplash()
                 .environmentObject(programStore)
                 .environmentObject(watchListStore)
+                .environmentObject(watchListStatsStore)
                 .environment(\.locale, Locale(identifier: appLanguage.localeIdentifier))
+                .tint(Color.festivalAccent)
         }
     }
 }
 
 private struct RootWithLaunchSplash: View {
     @EnvironmentObject private var programStore: FestivalProgramStore
+    @EnvironmentObject private var watchList: WatchListStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showSplash = true
     @State private var launchIsLoading = false
 
@@ -61,6 +69,12 @@ private struct RootWithLaunchSplash: View {
                 .zIndex(1)
             }
         }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, !showSplash else { return }
+            Task {
+                await watchList.syncAnonymousStatsWithLocalWatchList(seasonYear: programStore.seasonYear)
+            }
+        }
     }
 
     private func beginPostLaunchLoading() {
@@ -69,6 +83,7 @@ private struct RootWithLaunchSplash: View {
         }
         Task {
             await programStore.completePostLaunchSetup()
+            await watchList.syncAnonymousStatsWithLocalWatchList(seasonYear: programStore.seasonYear)
             withAnimation(.easeOut(duration: 0.25)) {
                 showSplash = false
             }

@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import EventKit
 
 /// Which ordered list prev/next controls move through on the detail screen.
 enum MovieDetailLineupScope: Hashable {
@@ -14,10 +15,19 @@ enum MovieDetailLineupScope: Hashable {
 struct MovieDetailView: View {
     @EnvironmentObject private var program: FestivalProgramStore
     @EnvironmentObject private var watchList: WatchListStore
+    @EnvironmentObject private var watchListStats: WatchListStatsStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
     let lineupScope: MovieDetailLineupScope
     @State private var screening: Screening
+    @State private var calendarEditPayload: CalendarEditPayload?
+    @State private var showCalendarAccessDenied = false
+
+    private struct CalendarEditPayload: Identifiable {
+        let id = UUID()
+        let store: EKEventStore
+        let event: EKEvent
+    }
 
     init(screening: Screening, lineupScope: MovieDetailLineupScope = .fullProgram) {
         self.lineupScope = lineupScope
@@ -54,7 +64,7 @@ struct MovieDetailView: View {
     private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
         let mayAdd = program.canAddToWatchList(screening)
         guard mayAdd || watchList.contains(screening) else { return nil }
-        return { watchList.toggle(screening, mayAdd: mayAdd) }
+        return { watchList.toggle(screening, seasonYear: program.seasonYear, mayAdd: mayAdd) }
     }
 
     var body: some View {
@@ -126,7 +136,34 @@ struct MovieDetailView: View {
                         .font(.title3)
                         .foregroundStyle(screening.hasPassed ? .tertiary : .secondary)
 
+                    if let count = watchListStats.count(screeningId: screening.id),
+                       count > 0 {
+                        Label(
+                            L10n.watchlistInterest(count, language: appLanguage),
+                            systemImage: "bookmark.fill"
+                        )
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    }
+
                     ScreeningFactsGrid(screening: screening, language: appLanguage)
+
+                    if screening.hasLanguageInfo {
+                        ScreeningLanguageRow(screening: screening, language: appLanguage)
+                    }
+
+                    if !screening.isCanceled {
+                        Button {
+                            Task { await presentCalendarEditor() }
+                        } label: {
+                            Label(
+                                L10n.text("calendar_add_one", language: appLanguage),
+                                systemImage: "calendar.badge.plus"
+                            )
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
 
                 Text(screening.localizedSynopsis(language: appLanguage))
@@ -166,8 +203,93 @@ struct MovieDetailView: View {
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
         }
+        .festivalScreenBackground()
         .navigationTitle(screening.localizedTitle(language: appLanguage))
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            watchListStats.startObserving(screeningId: screening.id)
+        }
+        .onDisappear {
+            watchListStats.stopObserving(screeningId: screening.id)
+        }
+        .onChange(of: screening.id) { oldId, newId in
+            watchListStats.stopObserving(screeningId: oldId)
+            watchListStats.startObserving(screeningId: newId)
+        }
+        .sheet(item: $calendarEditPayload) { payload in
+            CalendarEventEditView(eventStore: payload.store, event: payload.event)
+        }
+        .alert(
+            L10n.text("calendar_add_one", language: appLanguage),
+            isPresented: $showCalendarAccessDenied
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(L10n.text("calendar_access_denied", language: appLanguage))
+        }
+    }
+
+    private func presentCalendarEditor() async {
+        let store = EKEventStore()
+        guard await ScreeningCalendarService.requestAccess(using: store) else {
+            showCalendarAccessDenied = true
+            return
+        }
+        calendarEditPayload = CalendarEditPayload(
+            store: store,
+            event: ScreeningCalendarService.makeEvent(
+                screening: screening,
+                language: appLanguage,
+                store: store
+            )
+        )
+    }
+}
+
+// MARK: - Screening language row
+
+private struct ScreeningLanguageRow: View {
+    let screening: Screening
+    let language: AppLanguage
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            if let audio = screening.localizedAudioLanguage(language: language) {
+                languageColumn(
+                    symbol: "mouth.fill",
+                    label: L10n.text("detail_audio_language", language: language),
+                    value: audio
+                )
+            }
+            if let subtitles = screening.localizedSubtitleLanguage(language: language) {
+                languageColumn(
+                    symbol: "captions.bubble",
+                    label: L10n.text("detail_subtitles", language: language),
+                    value: subtitles
+                )
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func languageColumn(symbol: String, label: String, value: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: symbol)
+                .font(.subheadline.weight(.semibold))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.secondary)
+                .frame(height: 20)
+
+            Text(value)
+                .font(.caption.weight(.semibold))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label), \(value)")
     }
 }
 
@@ -262,9 +384,11 @@ private struct ScreeningFactsGrid: View {
 }
 
 #Preview("Movie detail — facts row") {
+    let stats = WatchListStatsStore()
     NavigationStack {
         MovieDetailView(screening: FestivalProgramBootstrap.weeks[0].orderedScreenings[0])
     }
     .environmentObject(FestivalProgramStore.preview)
-    .environmentObject(WatchListStore())
+    .environmentObject(WatchListStore.preview(statsStore: stats))
+    .environmentObject(stats)
 }

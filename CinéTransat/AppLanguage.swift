@@ -60,6 +60,8 @@ enum L10n {
             "detail_start": ("Début de la projection", "Screening start"),
             "detail_duration": ("Durée", "Duration"),
             "detail_duration_variable": ("Variable", "Variable"),
+            "detail_audio_language": ("Langue", "Language"),
+            "detail_subtitles": ("Sous-titres", "Subtitles"),
             "detail_search_imdb": ("IMDb", "IMDb"),
             "detail_search_allocine": ("Allociné", "Allociné"),
             "detail_screening_canceled": ("Séance annulée", "Screening canceled"),
@@ -73,6 +75,40 @@ enum L10n {
             "program_week_accessibility": ("Semaine %d", "Week %d"),
             "watchlist_add": ("Ajouter à la liste", "Add to watch list"),
             "watchlist_remove": ("Retirer de la liste", "Remove from watch list"),
+            "detail_watchlist_interest_one": (
+                "1 personne l'a ajouté à sa liste",
+                "1 person added it to their watch list"
+            ),
+            "detail_watchlist_interest_many": (
+                "%d personnes l'ont ajouté à leur liste",
+                "%d people added it to their watch list"
+            ),
+            "watchlist_others_one": (
+                "1 autre l'a aussi ajouté",
+                "1 other added it too"
+            ),
+            "watchlist_others_many": (
+                "%d autres l'ont aussi ajouté",
+                "%d others added it too"
+            ),
+            "calendar_add_one": ("Ajouter au calendrier", "Add to Calendar"),
+            "calendar_add_all": ("Tout au calendrier", "Add All to Calendar"),
+            "calendar_access_denied": (
+                "Autorisez l’accès au calendrier dans Réglages pour enregistrer une séance.",
+                "Allow calendar access in Settings to save a screening."
+            ),
+            "calendar_added_all": (
+                "%d séance(s) ajoutée(s) à votre calendrier.",
+                "Added %d screening(s) to your calendar."
+            ),
+            "calendar_added_partial": (
+                "%d ajoutée(s), %d impossible(s) à ajouter.",
+                "Added %d, couldn’t add %d."
+            ),
+            "calendar_nothing_to_add": (
+                "Aucune séance à venir sur votre liste.",
+                "No upcoming screenings on your watch list."
+            ),
             "program_season_picker": ("Choisir la saison", "Choose season"),
             "program_season_picker_hint": ("Faites défiler pour choisir une autre saison", "Scroll to choose another season"),
             "program_refresh_posters": ("Actualiser les affiches", "Refresh posters"),
@@ -294,6 +330,21 @@ enum L10n {
         case .en: return pair.en
         }
     }
+
+    static func watchlistInterest(_ count: Int, language: AppLanguage) -> String {
+        if count == 1 {
+            return text("detail_watchlist_interest_one", language: language)
+        }
+        return String(format: text("detail_watchlist_interest_many", language: language), count)
+    }
+
+    /// How many *other* people (excluding the current user) added the same screening.
+    static func watchlistOthers(_ others: Int, language: AppLanguage) -> String {
+        if others == 1 {
+            return text("watchlist_others_one", language: language)
+        }
+        return String(format: text("watchlist_others_many", language: language), others)
+    }
 }
 
 enum FestivalDateFormatters {
@@ -374,5 +425,42 @@ extension Screening {
 
     var releaseYear: Int? {
         PosterCatalog.releaseYear(forPosterKey: posterKey)
+    }
+
+    var hasLanguageInfo: Bool {
+        guard hasSpokenDialogue else { return false }
+        return localizedAudioLanguage(language: .fr) != nil || localizedSubtitleLanguage(language: .fr) != nil
+    }
+
+    private var hasSpokenDialogue: Bool {
+        let noDialogue = Set(["sans dialogue", "no dialogue"])
+        let audioLabels = [audioLanguage, audioLanguageEn]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty }
+        guard !audioLabels.isEmpty else { return true }
+        return !audioLabels.allSatisfy { noDialogue.contains($0) }
+    }
+
+    func localizedAudioLanguage(language: AppLanguage) -> String? {
+        switch language {
+        case .fr:
+            return nonEmpty(audioLanguage)
+        case .en:
+            return nonEmpty(audioLanguageEn) ?? nonEmpty(audioLanguage)
+        }
+    }
+
+    func localizedSubtitleLanguage(language: AppLanguage) -> String? {
+        switch language {
+        case .fr:
+            return nonEmpty(subtitleLanguage)
+        case .en:
+            return nonEmpty(subtitleLanguageEn) ?? nonEmpty(subtitleLanguage)
+        }
+    }
+
+    private func nonEmpty(_ value: String?) -> String? {
+        guard let value, !value.isEmpty else { return nil }
+        return value
     }
 }

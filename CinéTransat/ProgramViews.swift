@@ -21,7 +21,7 @@ private struct WeekPageIndicatorBar: View {
                     }
                 } label: {
                     Capsule()
-                        .fill(index == selection ? Color.accentColor : Color.festivalProgramTitle.opacity(0.22))
+                        .fill(index == selection ? Color.festivalAccent : Color.festivalProgramTitle.opacity(0.22))
                         .frame(width: index == selection ? 22 : 7, height: 7)
                 }
                 .buttonStyle(.plain)
@@ -37,7 +37,7 @@ private struct WeekPageIndicatorBar: View {
                 .fill(Color.festivalProgramPagerTrack)
                 .overlay {
                     Capsule()
-                        .strokeBorder(Color.black.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                 }
         }
         .padding(.top, 6)
@@ -94,13 +94,16 @@ private struct WeekProgramFitContent: View {
                     Text(localizedWeekLabel(number: weekNumber, weekLabel: week.label, language: appLanguage))
                         .font(.caption.weight(.bold))
                         .tracking(0.6)
-                        .foregroundStyle(Color.festivalProgramTitle)
+                        .foregroundStyle(Color.festivalAccent)
                         .padding(.horizontal, 14)
                         .padding(.vertical, compact ? 5 : 7)
                         .background {
                             Capsule()
-                                .fill(.background.secondary)
-                                .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                                .fill(Color.festivalAccent.opacity(0.14))
+                                .overlay {
+                                    Capsule()
+                                        .strokeBorder(Color.festivalAccent.opacity(0.35), lineWidth: 1)
+                                }
                         }
 
                     Spacer(minLength: 0)
@@ -135,7 +138,7 @@ private struct WeekProgramFitContent: View {
         guard mayAdd || watchList.contains(screening) else { return nil }
         return {
             justToggledWatchListID = screening.watchListID
-            watchList.toggle(screening, mayAdd: mayAdd)
+            watchList.toggle(screening, seasonYear: program.seasonYear, mayAdd: mayAdd)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 if justToggledWatchListID == screening.watchListID {
                     justToggledWatchListID = nil
@@ -157,7 +160,9 @@ private struct WeekProgramFitContent: View {
             )
             Text(screening.localizedTitle(language: appLanguage))
                 .font(compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
-                .foregroundStyle(screening.hasPassed ? Color.festivalProgramTitleMuted : Color.festivalProgramTitle)
+                .foregroundStyle(
+                    screening.hasPassed ? Color.festivalAccent.opacity(0.55) : Color.festivalAccent
+                )
                 .opacity(screening.hasPassed ? 0.8 : 1)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -212,7 +217,7 @@ struct ProgramPhoneView: View {
 
                 WeekPageIndicatorBar(count: program.weeks.count, selection: $weekIndex, language: appLanguage)
             }
-            .background(Color.festivalProgramBackground)
+            .festivalScreenBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Screening.self) { screening in
@@ -246,13 +251,16 @@ struct ProgramPadView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(week.label)
                             .font(.headline)
+                            .foregroundStyle(Color.festivalProgramTitle)
                         Text(subtitle(for: week))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.festivalProgramTitleMuted)
                     }
                     .tag(week)
                 }
             }
+            .festivalListChrome()
+            .festivalScreenBackground()
             .navigationTitle(L10n.text("program_weeks_title", language: appLanguage))
             .onAppear {
                 if selectedWeek == nil {
@@ -279,7 +287,7 @@ struct ProgramPadView: View {
 
                             WeekProgramFitContent(path: $path, week: week, weekNumber: weekNumber(for: week), compact: false, tightTop: false)
                         }
-                            .background(Color.festivalProgramBackground)
+                            .festivalScreenBackground()
                             .navigationBarTitleDisplayMode(.inline)
                             .toolbar(.hidden, for: .navigationBar)
                             .navigationDestination(for: Screening.self) { screening in
@@ -291,10 +299,13 @@ struct ProgramPadView: View {
                             systemImage: "calendar",
                             description: Text(L10n.text("program_pick_week_body", language: appLanguage))
                         )
+                        .festivalScreenBackground()
                     }
                 }
             }
+            .festivalScreenBackground()
         }
+        .background(Color.festivalProgramBackground)
     }
 
     private func subtitle(for week: FestivalWeek) -> String {

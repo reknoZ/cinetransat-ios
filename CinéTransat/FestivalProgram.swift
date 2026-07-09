@@ -36,6 +36,10 @@ struct Screening: Identifiable, Hashable {
     let runtimeMinutes: Int?
     let legalAge: Int?
     let recommendedAge: Int?
+    let audioLanguage: String?
+    let audioLanguageEn: String?
+    let subtitleLanguage: String?
+    let subtitleLanguageEn: String?
     let searchTitle: String
     /// Optional HTTPS poster URL (Firestore). Takes priority over `posterBaseURL`.
     let posterURL: String?
@@ -58,6 +62,10 @@ struct Screening: Identifiable, Hashable {
         runtimeMinutes: Int?,
         legalAge: Int? = nil,
         recommendedAge: Int? = nil,
+        audioLanguage: String? = nil,
+        audioLanguageEn: String? = nil,
+        subtitleLanguage: String? = nil,
+        subtitleLanguageEn: String? = nil,
         searchTitle: String? = nil,
         posterURL: String? = nil,
         posterKey: String? = nil
@@ -73,6 +81,10 @@ struct Screening: Identifiable, Hashable {
         self.runtimeMinutes = runtimeMinutes
         self.legalAge = legalAge
         self.recommendedAge = recommendedAge
+        self.audioLanguage = audioLanguage
+        self.audioLanguageEn = audioLanguageEn
+        self.subtitleLanguage = subtitleLanguage
+        self.subtitleLanguageEn = subtitleLanguageEn
         self.searchTitle = searchTitle ?? title
         self.posterURL = posterURL
         self.posterKey = PosterCatalog.stem(forDisplayTitle: title, searchTitle: searchTitle, explicit: posterKey)
@@ -292,6 +304,10 @@ enum FestivalProgramBootstrap {
                             "runtimeMinutes": screening.runtimeMinutes as Any,
                             "legalAge": screening.legalAge as Any,
                             "recommendedAge": screening.recommendedAge as Any,
+                            "audioLanguage": screening.audioLanguage as Any,
+                            "audioLanguageEn": screening.audioLanguageEn as Any,
+                            "subtitleLanguage": screening.subtitleLanguage as Any,
+                            "subtitleLanguageEn": screening.subtitleLanguageEn as Any,
                             "searchTitle": screening.searchTitle,
                             "posterURL": screening.posterURL as Any,
                             "posterKey": screening.posterKey,
@@ -336,6 +352,10 @@ enum FestivalProgramBootstrap {
                         runtimeMinutes: screening.runtimeMinutes,
                         legalAge: screening.legalAge,
                         recommendedAge: screening.recommendedAge,
+                        audioLanguage: screening.audioLanguage,
+                        audioLanguageEn: screening.audioLanguageEn,
+                        subtitleLanguage: screening.subtitleLanguage,
+                        subtitleLanguageEn: screening.subtitleLanguageEn,
                         searchTitle: screening.searchTitle,
                         posterURL: screening.posterURL,
                         posterKey: screening.posterKey

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "seasonYear": 2026,
-  "updatedAt": "2026-06-24T23:34:52+02:00",
+  "updatedAt": "2026-07-09T12:52:47+02:00",
   "weeks": [
     {
       "id": "2026-w1",
@@ -17,7 +17,11 @@
           "posterKey": "back-to-the-future",
           "synopsisEn": "Marty, hurled to 1955 in a DeLorean, must get his parents to fall for each other or vanish from the future. Where he's going, he doesn't need roads!",
           "runtimeMinutes": 116,
-          "legalAge": 10
+          "legalAge": 10,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260710",
@@ -30,7 +34,11 @@
           "synopsisEn": "Paula, the only hearing member of a deaf family, discovers her voice and must choose between belting out Michel Sardou or staying the rock of her family.",
           "runtimeMinutes": 105,
           "legalAge": 8,
-          "recommendedAge": 12
+          "recommendedAge": 12,
+          "audioLanguage": "Français",
+          "audioLanguageEn": "French",
+          "subtitleLanguage": "Anglais",
+          "subtitleLanguageEn": "English"
         },
         {
           "id": "20260711",
@@ -43,7 +51,11 @@
           "synopsisEn": "A miner's son discovers dance and dreams of ballet instead of boxing gloves.",
           "runtimeMinutes": 110,
           "legalAge": 10,
-          "recommendedAge": 12
+          "recommendedAge": 12,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260712",
@@ -56,7 +68,11 @@
           "synopsisEn": "A cat wakes in a flooded world and boards a boat with other animals to survive a silent deluge. Noah's Ark, minus Noah.",
           "runtimeMinutes": 85,
           "legalAge": 6,
-          "recommendedAge": 8
+          "recommendedAge": 8,
+          "audioLanguage": "Sans dialogue",
+          "audioLanguageEn": "No dialogue",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         }
       ]
     },
@@ -75,7 +91,11 @@
           "synopsisEn": "In Borneo, a teen and a baby orangutan confront deforestation and discover their bond with nature and each other.",
           "runtimeMinutes": 87,
           "legalAge": 6,
-          "recommendedAge": 8
+          "recommendedAge": 8,
+          "audioLanguage": "Français",
+          "audioLanguageEn": "French",
+          "subtitleLanguage": "Anglais",
+          "subtitleLanguageEn": "English"
         },
         {
           "id": "20260717",
@@ -88,7 +108,11 @@
           "synopsisEn": "A Vogue assistant overrates her gaydar. Her gay best friend falls head over heels. Romantic mix-ups and small disasters ensue…",
           "runtimeMinutes": 90,
           "legalAge": 7,
-          "recommendedAge": 12
+          "recommendedAge": 12,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260718",
@@ -101,7 +125,11 @@
           "synopsisEn": "A Peruvian bear arrives in London with his hat, his love of marmalade, and… his clumsiness. His adoptive family's patience is sorely tested. But who could stay mad at such a polite little bear?",
           "runtimeMinutes": 95,
           "legalAge": 0,
-          "recommendedAge": 6
+          "recommendedAge": 6,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260719",
@@ -112,7 +140,11 @@
           "synopsis": "Sélection de courts métrages suisses et internationaux.",
           "posterKey": "soiree-court-metrages",
           "synopsisEn": "A selection of Swiss and international short films.",
-          "legalAge": 16
+          "legalAge": 16,
+          "audioLanguage": "Variable",
+          "audioLanguageEn": "Various",
+          "subtitleLanguage": "Variable",
+          "subtitleLanguageEn": "Various"
         }
       ]
     },
@@ -130,7 +162,11 @@
           "posterKey": "i-am-not-a-witch",
           "synopsisEn": "A girl is accused of witchcraft and sent to a camp where she must survive an absurd, cruel system.",
           "runtimeMinutes": 93,
-          "legalAge": 16
+          "legalAge": 16,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260724",
@@ -142,7 +178,11 @@
           "posterKey": "singin-in-the-rain",
           "synopsisEn": "Hollywood goes from silent to sound; Gene Kelly dances in the rain, a starlet lip-syncs badly.",
           "runtimeMinutes": 103,
-          "legalAge": 7
+          "legalAge": 7,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260725",
@@ -154,7 +194,11 @@
           "posterKey": "wadjda",
           "synopsisEn": "A Saudi girl dreams of a forbidden bicycle and defies the rules. Pedal, Wadjda, pedal!",
           "runtimeMinutes": 98,
-          "legalAge": 10
+          "legalAge": 10,
+          "audioLanguage": "Arabe",
+          "audioLanguageEn": "Arabic",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260726",
@@ -166,7 +210,11 @@
           "posterKey": "the-girl-who-leapt-through-time",
           "synopsisEn": "A teen discovers she can rewind time. What could possibly go wrong?",
           "runtimeMinutes": 98,
-          "legalAge": 10
+          "legalAge": 10,
+          "audioLanguage": "Japonais",
+          "audioLanguageEn": "Japanese",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         }
       ]
     },
@@ -182,7 +230,11 @@
           "isCanceled": false,
           "synopsis": "Chantez devant l'écran : tubes français et internationaux sous les étoiles.",
           "posterKey": "soiree-choreoke",
-          "synopsisEn": "Sing along to the screen: French and international hits under the stars."
+          "synopsisEn": "Sing along to the screen: French and international hits under the stars.",
+          "audioLanguage": "Multilingue",
+          "audioLanguageEn": "Multilingual",
+          "subtitleLanguage": "Paroles à l'écran",
+          "subtitleLanguageEn": "On-screen lyrics"
         },
         {
           "id": "20260731",
@@ -194,7 +246,11 @@
           "posterKey": "jumanji-welcome-to-the-jungle",
           "synopsisEn": "Four teens trapped in a cursed video game must survive a jungle full of booby traps and cheesy clichés.",
           "runtimeMinutes": 119,
-          "legalAge": 12
+          "legalAge": 12,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260801",
@@ -207,7 +263,11 @@
           "synopsisEn": "In Switzerland, an absurd popular initiative triggers national chaos between regions that no longer understand each other at all. Grüezi!",
           "runtimeMinutes": 88,
           "legalAge": 6,
-          "recommendedAge": 10
+          "recommendedAge": 10,
+          "audioLanguage": "Multilingue",
+          "audioLanguageEn": "Multilingual",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260802",
@@ -220,7 +280,11 @@
           "synopsisEn": "A painter must complete a young woman's portrait as a forbidden passion slowly grows. Hurray for lesbians!",
           "runtimeMinutes": 121,
           "legalAge": 12,
-          "recommendedAge": 16
+          "recommendedAge": 16,
+          "audioLanguage": "Français",
+          "audioLanguageEn": "French",
+          "subtitleLanguage": "Anglais",
+          "subtitleLanguageEn": "English"
         }
       ]
     },
@@ -239,7 +303,11 @@
           "synopsisEn": "In the 1970s, a Black detective infiltrates the Ku Klux Klan by phone. He'll need a stand-in to go undercover…",
           "runtimeMinutes": 135,
           "legalAge": 12,
-          "recommendedAge": 14
+          "recommendedAge": 14,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260807",
@@ -251,7 +319,11 @@
           "posterKey": "much-ado-about-nothing",
           "synopsisEn": "Two couples flirt, spar, and fall in love in a Shakespearean comedy of misunderstandings worthy of a telenovela.",
           "runtimeMinutes": 111,
-          "legalAge": 10
+          "legalAge": 10,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260808",
@@ -264,7 +336,11 @@
           "synopsisEn": "A mercenary with perfect hair and a clumsy librarian have awakened Imhotep's mummy. He's not very happy.",
           "runtimeMinutes": 125,
           "legalAge": 12,
-          "recommendedAge": 14
+          "recommendedAge": 14,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260809",
@@ -276,7 +352,11 @@
           "posterKey": "lo-que-quisimos-ser",
           "synopsisEn": "Two strangers invent a love story to escape their reality, and end up blurring fiction and feeling.",
           "runtimeMinutes": 90,
-          "legalAge": 7
+          "legalAge": 7,
+          "audioLanguage": "Espagnol",
+          "audioLanguageEn": "Spanish",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         }
       ]
     },
@@ -295,7 +375,11 @@
           "synopsisEn": "A slick casino heist brings eleven pros together for a precision job at the heart of Las Vegas, set to funky jazz.",
           "runtimeMinutes": 116,
           "legalAge": 10,
-          "recommendedAge": 14
+          "recommendedAge": 14,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260814",
@@ -307,7 +391,11 @@
           "posterKey": "everything-everywhere-all-at-once",
           "synopsisEn": "A woman does her taxes, then saves the multiverse and her dysfunctional family across parallel realities. Kung fu, existential bagel: it's chaos, and it's magnificent.",
           "runtimeMinutes": 139,
-          "legalAge": 16
+          "legalAge": 16,
+          "audioLanguage": "Anglais",
+          "audioLanguageEn": "English",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260815",
@@ -320,7 +408,11 @@
           "synopsisEn": "A mighty hero uncovers his royal past and launches an epic war to reclaim a stolen throne and avenge his lineage.",
           "runtimeMinutes": 167,
           "searchTitle": "Baahubali 2: The Conclusion",
-          "legalAge": 16
+          "legalAge": 16,
+          "audioLanguage": "Tamoul",
+          "audioLanguageEn": "Tamil",
+          "subtitleLanguage": "Français",
+          "subtitleLanguageEn": "French"
         },
         {
           "id": "20260816",
@@ -332,7 +424,11 @@
           "posterKey": "intouchables",
           "synopsisEn": "A quadriplegic aristocrat hires a caregiver from the projects who introduces him to (among other things) disco.",
           "runtimeMinutes": 112,
-          "legalAge": 10
+          "legalAge": 10,
+          "audioLanguage": "Français",
+          "audioLanguageEn": "French",
+          "subtitleLanguage": "Anglais",
+          "subtitleLanguageEn": "English"
         }
       ]
     }

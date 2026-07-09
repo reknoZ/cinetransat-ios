@@ -241,6 +241,34 @@ _BLURB_EN_2026: dict[str, str] = {
     ),
 }
 
+# (audio FR, audio EN, subtitles FR, subtitles EN)
+_LANGUAGE_2026: dict[str, tuple[str, str, str, str]] = {
+    "Back to the Future": ("Anglais", "English", "Français", "French"),
+    "La Famille Bélier": ("Français", "French", "Anglais", "English"),
+    "Billy Elliot": ("Anglais", "English", "Français", "French"),
+    "Flow": ("Sans dialogue", "No dialogue", "Français", "French"),
+    "Sauvages": ("Français", "French", "Anglais", "English"),
+    "Love and Other Disasters": ("Anglais", "English", "Français", "French"),
+    "Paddington": ("Anglais", "English", "Français", "French"),
+    "Soirées courts-métrages": ("Variable", "Various", "Variable", "Various"),
+    "I Am Not a Witch": ("Anglais", "English", "Français", "French"),
+    "Singin' in the Rain": ("Anglais", "English", "Français", "French"),
+    "Wadjda": ("Arabe", "Arabic", "Français", "French"),
+    "The Girl Who Leapt Through Time": ("Japonais", "Japanese", "Français", "French"),
+    "CHOREOKE": ("Multilingue", "Multilingual", "Paroles à l'écran", "On-screen lyrics"),
+    "Jumanji: Welcome to the Jungle": ("Anglais", "English", "Français", "French"),
+    "Bon Schuur Ticino (Ciao-ciao bourbine)": ("Multilingue", "Multilingual", "Français", "French"),
+    "Portrait de la jeune fille en feu": ("Français", "French", "Anglais", "English"),
+    "BlacKkKlansman": ("Anglais", "English", "Français", "French"),
+    "Much Ado About Nothing": ("Anglais", "English", "Français", "French"),
+    "The Mummy": ("Anglais", "English", "Français", "French"),
+    "Lo que quisimos ser": ("Espagnol", "Spanish", "Français", "French"),
+    "Ocean's Eleven": ("Anglais", "English", "Français", "French"),
+    "Everything Everywhere All at Once": ("Anglais", "English", "Français", "French"),
+    "Baahubali 2: The Conclusion": ("Tamoul", "Tamil", "Français", "French"),
+    "Intouchables": ("Français", "French", "Anglais", "English"),
+}
+
 
 # Official 2026 programme (schema v3: legalAge + recommendedAge on each screening).
 def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
@@ -249,6 +277,12 @@ def build_template_2026(season_year: int = 2026) -> list[WeekSpec]:
     def f(title: str, month: int, day: int, **kwargs: Any) -> tuple[str, int, int, dict[str, Any]]:
         if title in _BLURB_EN_2026:
             kwargs.setdefault("blurb_en", _BLURB_EN_2026[title])
+        if title in _LANGUAGE_2026:
+            audio_fr, audio_en, subs_fr, subs_en = _LANGUAGE_2026[title]
+            kwargs.setdefault("audio_language", audio_fr)
+            kwargs.setdefault("audio_language_en", audio_en)
+            kwargs.setdefault("subtitle_language", subs_fr)
+            kwargs.setdefault("subtitle_language_en", subs_en)
         return _film_spec(title, month, day, sunset_table, season_year, **kwargs)
 
     return [
@@ -539,6 +573,10 @@ def build_season_document(season_year: int, template: list[WeekSpec]) -> dict:
                     legal_age=kwargs.get("legal_age"),
                     recommended_age=kwargs.get("recommended_age"),
                     sunset_at=kwargs.get("sunset_at"),
+                    audio_language=kwargs.get("audio_language"),
+                    audio_language_en=kwargs.get("audio_language_en"),
+                    subtitle_language=kwargs.get("subtitle_language"),
+                    subtitle_language_en=kwargs.get("subtitle_language_en"),
                 )
             )
         weeks.append(

@@ -17,6 +17,10 @@ struct UsefulInfoView: View {
         PracticalInfoSection.all(language: appLanguage, seasonYear: FestivalPublicConfig.currentSeasonYear)
     }
 
+    private var navTitle: String {
+        L10n.text("info_nav_title", language: appLanguage)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -25,17 +29,16 @@ struct UsefulInfoView: View {
                         DisclosureGroup {
                             Text(section.body)
                                 .font(.body)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.festivalAccent.opacity(0.88))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.top, 6)
                         } label: {
                             Label(section.title, systemImage: section.icon)
                                 .font(.headline)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.festivalAccent)
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .tint(Color.festivalAccent)
+                        .festivalCardChrome()
                     }
                 }
                 .padding(horizontalSizeClass == .compact ? 16 : 32)
@@ -43,7 +46,9 @@ struct UsefulInfoView: View {
                 .frame(maxWidth: 720)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .navigationTitle(L10n.text("info_nav_title", language: appLanguage))
+            .festivalScreenBackground()
+            .festivalPinkNavigationTitle(navTitle)
+            .toolbarBackground(Color.festivalProgramBackground, for: .navigationBar)
         }
     }
 }
