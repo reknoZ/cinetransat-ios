@@ -97,13 +97,42 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /watchlistDevices/{screeningId} {
+      allow read: if true;
+      allow create: if screeningId.matches('^\\d{8}$')
+        && request.resource.data.keys().hasOnly(['devices'])
+        && request.resource.data.devices is list
+        && request.resource.data.devices.size() == 1;
+      allow update: if screeningId.matches('^\\d{8}$')
+        && request.resource.data.keys().hasOnly(['devices'])
+        && request.resource.data.devices is list
+        && (
+          request.resource.data.devices.size() == resource.data.get('devices', []).size() + 1
+          || request.resource.data.devices.size() == resource.data.get('devices', []).size() - 1
+        );
+      allow delete: if false;
+    }
     match /watchlistStats/{screeningId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasOnly(['count'])
-        && request.resource.data.count is int
+        && request.resource.data.count is number
         && request.resource.data.count == 1;
       allow update: if request.resource.data.keys().hasOnly(['count'])
-        && request.resource.data.count is int
+        && request.resource.data.count is number
+        && request.resource.data.count >= 0
+        && (
+          request.resource.data.count == resource.data.get('count', 0) + 1
+          || request.resource.data.count == resource.data.get('count', 0) - 1
+        );
+      allow delete: if false;
+    }
+    match /watchlistStats/{year}/screenings/{screeningId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is number
+        && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is number
         && request.resource.data.count >= 0
         && (
           request.resource.data.count == resource.data.get('count', 0) + 1
@@ -117,11 +146,50 @@ service cloud.firestore {
 
 ### Anonymous watch list stats
 
-Path: `watchlistStats/{screeningId}` — field `count` (integer). Document ID is the screening day key (`yyyyMMdd`), the same as `screenings[].id` in `seasons/{year}`.
+**Displayed count (transition):** legacy `count` + `watchlistDevices.devices.length`
 
-When a user adds or removes a film on their **on-device** watch list, the app increments or decrements `count` by 1. No user ID or device identifier is stored. Rules only allow ±1 per write (see [`firestore.rules`](../firestore.rules)).
+Legacy data may live at either path (older builds used the nested one):
 
-After changing rules, run `firebase deploy --only firestore:rules`.
+- `watchlistStats/{yyyyMMdd}.count` (flat)
+- `watchlistStats/{year}/screenings/{yyyyMMdd}.count` (nested)
+
+The app reads **both** during transition and uses whichever document exists.
+
+- **Old app versions** still increment/decrement `watchlistStats.count`.
+- **New app** writes `watchlistDevices.devices` only; on first launch after upgrade it also **−1** legacy for each migrated screening so upgraded users are not double-counted.
+
+When every user is on the new build, delete the `watchlistStats` collection and remove the legacy listener/rules — counts will come from `devices.length` only.
+
+Rules: [`firestore.rules`](../firestore.rules). Deploy after changes:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+To reset test data: `python scripts/reset_watchlist_stats.py --count 0` (see script help).
+
+### Migrating from legacy `watchlistStats.count`
+
+The old schema stored only an integer per screening (`watchlistStats/{yyyyMMdd}.count`). It did **not** record which installs contributed, so you **cannot** rebuild `devices` arrays from old counts alone.
+
+**Per device (automatic in app v1.2+):** On first launch after upgrade, the app sets `watchlistDevicesSchemaV2Migrated` and runs `arrayUnion` for every screening on that device's local watch list (plus any legacy UserDefaults contribution ledger). After that, only `watchlistDevices` is used.
+
+**You do not need two App Store releases** — one build with the new code + deployed rules is enough.
+
+**Recommended release order:**
+
+1. Deploy Firestore rules (`firebase deploy --only firestore:rules`).
+2. Ship the iOS update; each upgraded device registers itself on first open.
+3. (Optional) In Firebase Console, delete the obsolete `watchlistStats` collection after most users have updated — or leave it; the app no longer reads it.
+
+**Expect counts to change:** Displayed totals come from `devices.length` and may be **lower** than old `count` values that were inflated by reinstall double-counting. Mention this in release notes if numbers were public.
+
+**Optional admin cleanup** — remove legacy count documents (does not affect the new arrays):
+
+```bash
+# Firebase Console → Firestore → watchlistStats → delete collection
+# Or use a one-off Admin SDK script with serviceAccountKey.json
+```
 
 Optional CLI deploy (from repo root, after `npm install -g firebase-tools` and `firebase login`):
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Set watchlistStats counts (admin). Use to fix double-counted test data."""
+"""Set watchlistDevices `devices` arrays (admin). Use to fix double-counted test data."""
 
 from __future__ import annotations
 
@@ -14,12 +14,17 @@ from firebase_admin import credentials, firestore, initialize_app
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Set watchlistStats screening counts")
-    parser.add_argument("--count", type=int, required=True, help="Value to set on each document")
+    parser = argparse.ArgumentParser(description="Set watchlistDevices screening device lists")
+    parser.add_argument(
+        "--count",
+        type=int,
+        required=True,
+        help="Length of the devices array (uses placeholder UUIDs for testing)",
+    )
     parser.add_argument(
         "--screening",
         action="append",
-        help="yyyyMMdd id (repeatable). Default: all documents in watchlistStats",
+        help="yyyyMMdd id (repeatable). Default: all documents in watchlistDevices",
     )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -31,7 +36,7 @@ def main() -> None:
         pass
 
     db = firestore.client()
-    base = db.collection("watchlistStats")
+    base = db.collection("watchlistDevices")
 
     if args.screening:
         refs = [base.document(sid) for sid in args.screening]
@@ -42,13 +47,15 @@ def main() -> None:
         print("No documents found.")
         return
 
+    devices = [f"00000000-0000-0000-0000-{i:012d}" for i in range(args.count)]
+
     for ref in refs:
         path = ref.path
         if args.dry_run:
-            print(f"[dry-run] Would set {path} count={args.count}")
+            print(f"[dry-run] Would set {path} devices length={len(devices)}")
         else:
-            ref.set({"count": args.count}, merge=True)
-            print(f"Set {path} count={args.count}")
+            ref.set({"devices": devices}, merge=True)
+            print(f"Set {path} devices length={len(devices)}")
 
 
 if __name__ == "__main__":

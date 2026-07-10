@@ -9,7 +9,7 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
-    // Anonymous watch list interest counts — one doc per screening day (`yyyyMMdd`).
+    // Legacy ±1 counter (old app versions + migration relinquish). Retire when all users upgraded.
     match /watchlistStats/{screeningId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasOnly(['count'])
@@ -21,6 +21,37 @@ service cloud.firestore {
         && (
           request.resource.data.count == resource.data.get('count', 0) + 1
           || request.resource.data.count == resource.data.get('count', 0) - 1
+        );
+      allow delete: if false;
+    }
+    // Pre–v1.2 nested layout: watchlistStats/{year}/screenings/{yyyyMMdd}
+    match /watchlistStats/{year}/screenings/{screeningId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is number
+        && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is number
+        && request.resource.data.count >= 0
+        && (
+          request.resource.data.count == resource.data.get('count', 0) + 1
+          || request.resource.data.count == resource.data.get('count', 0) - 1
+        );
+      allow delete: if false;
+    }
+    // Current schema — one doc per screening (`yyyyMMdd`), `devices` = [uuid, …].
+    match /watchlistDevices/{screeningId} {
+      allow read: if true;
+      allow create: if screeningId.matches('^\\d{8}$')
+        && request.resource.data.keys().hasOnly(['devices'])
+        && request.resource.data.devices is list
+        && request.resource.data.devices.size() == 1;
+      allow update: if screeningId.matches('^\\d{8}$')
+        && request.resource.data.keys().hasOnly(['devices'])
+        && request.resource.data.devices is list
+        && (
+          request.resource.data.devices.size() == resource.data.get('devices', []).size() + 1
+          || request.resource.data.devices.size() == resource.data.get('devices', []).size() - 1
         );
       allow delete: if false;
     }
