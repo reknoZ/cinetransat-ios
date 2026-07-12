@@ -381,8 +381,6 @@ enum FirestorePaths {
     static let seasonsCollection = "seasons"
     static let publicConfig = "cinetransat/publicConfig"
     static let watchlistDevicesCollection = "watchlistDevices"
-    /// Legacy ±1 counter — read during transition; old app builds still write here.
-    static let watchlistStatsLegacyCollection = "watchlistStats"
 
     static func season(_ year: Int) -> String {
         "\(seasonsCollection)/\(year)"
@@ -390,15 +388,6 @@ enum FirestorePaths {
 
     static func watchlistDevices(screeningId: String) -> String {
         "\(watchlistDevicesCollection)/\(screeningId)"
-    }
-
-    static func watchlistStatsLegacy(screeningId: String) -> String {
-        "\(watchlistStatsLegacyCollection)/\(screeningId)"
-    }
-
-    /// Pre–v1.2 layout: `watchlistStats/{year}/screenings/{yyyyMMdd}` — read during transition.
-    static func watchlistStatsLegacyNested(seasonYear: Int, screeningId: String) -> String {
-        "\(watchlistStatsLegacyCollection)/\(seasonYear)/screenings/\(screeningId)"
     }
 }
 

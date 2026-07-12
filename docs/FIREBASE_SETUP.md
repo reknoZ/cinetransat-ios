@@ -146,19 +146,11 @@ service cloud.firestore {
 
 ### Anonymous watch list stats
 
-**Displayed count (transition):** legacy `count` + `watchlistDevices.devices.length`
+Path: `watchlistDevices/{screeningId}` — field `devices` (array of anonymous install UUIDs). Document ID is the screening day key (`yyyyMMdd`), the same as `screenings[].id` in `seasons/{year}`.
 
-Legacy data may live at either path (older builds used the nested one):
+**Displayed count:** `devices.length` (distinct installs that added the screening).
 
-- `watchlistStats/{yyyyMMdd}.count` (flat)
-- `watchlistStats/{year}/screenings/{yyyyMMdd}.count` (nested)
-
-The app reads **both** during transition and uses whichever document exists.
-
-- **Old app versions** still increment/decrement `watchlistStats.count`.
-- **New app** writes `watchlistDevices.devices` only; on first launch after upgrade it also **−1** legacy for each migrated screening so upgraded users are not double-counted.
-
-When every user is on the new build, delete the `watchlistStats` collection and remove the legacy listener/rules — counts will come from `devices.length` only.
+When a user adds or removes a film on their **on-device** watch list, the app `arrayUnion` / `arrayRemove` their install UUID. Failed writes are queued locally and retried when the network returns. After reinstall, if local storage is empty but Firestore still lists this install's UUIDs, the watch list is restored from Firestore.
 
 Rules: [`firestore.rules`](../firestore.rules). Deploy after changes:
 
@@ -168,34 +160,7 @@ firebase deploy --only firestore:rules
 
 To reset test data: `python scripts/reset_watchlist_stats.py --count 0` (see script help).
 
-### Migrating from legacy `watchlistStats.count`
-
-The old schema stored only an integer per screening (`watchlistStats/{yyyyMMdd}.count`). It did **not** record which installs contributed, so you **cannot** rebuild `devices` arrays from old counts alone.
-
-**Per device (automatic in app v1.2+):** On first launch after upgrade, the app sets `watchlistDevicesSchemaV2Migrated` and runs `arrayUnion` for every screening on that device's local watch list (plus any legacy UserDefaults contribution ledger). After that, only `watchlistDevices` is used.
-
-**You do not need two App Store releases** — one build with the new code + deployed rules is enough.
-
-**Recommended release order:**
-
-1. Deploy Firestore rules (`firebase deploy --only firestore:rules`).
-2. Ship the iOS update; each upgraded device registers itself on first open.
-3. (Optional) In Firebase Console, delete the obsolete `watchlistStats` collection after most users have updated — or leave it; the app no longer reads it.
-
-**Expect counts to change:** Displayed totals come from `devices.length` and may be **lower** than old `count` values that were inflated by reinstall double-counting. Mention this in release notes if numbers were public.
-
-**Optional admin cleanup** — remove legacy count documents (does not affect the new arrays):
-
-```bash
-# Firebase Console → Firestore → watchlistStats → delete collection
-# Or use a one-off Admin SDK script with serviceAccountKey.json
-```
-
-Optional CLI deploy (from repo root, after `npm install -g firebase-tools` and `firebase login`):
-
-```bash
-firebase deploy --only firestore:rules
-```
+**Legacy `watchlistStats` collection:** Older iOS builds used a ±1 counter. Current iOS and Android apps use `watchlistDevices` only. You can delete obsolete `watchlistStats` documents in Firebase Console once all users have updated.
 
 Edits go through the **Firebase Console** or the **Admin SDK** (seed script), not from the public apps.
 

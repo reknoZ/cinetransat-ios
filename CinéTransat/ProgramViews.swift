@@ -190,6 +190,7 @@ struct ProgramPhoneView: View {
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var weekIndex = 0
     @State private var path = NavigationPath()
+    var programFocusGeneration: Int = 0
 
     private var appLanguage: AppLanguage {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
@@ -228,6 +229,19 @@ struct ProgramPhoneView: View {
                 let maxIndex = max(0, program.weeks.count - 1)
                 weekIndex = min(max(0, screenshotWeekIndex), maxIndex)
             }
+            .onChange(of: programFocusGeneration) { _, generation in
+                advanceToCurrentWeek(generation: generation)
+            }
+            .onChange(of: program.weeks.count) { _, _ in
+                advanceToCurrentWeek(generation: programFocusGeneration)
+            }
+        }
+    }
+
+    private func advanceToCurrentWeek(generation: Int) {
+        guard generation > 0, !program.weeks.isEmpty else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            weekIndex = program.weeks.indexOfWeek(for: Date())
         }
     }
 }
@@ -239,6 +253,7 @@ struct ProgramPadView: View {
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var selectedWeek: FestivalWeek?
     @State private var path = NavigationPath()
+    var programFocusGeneration: Int = 0
 
     private var appLanguage: AppLanguage {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
@@ -306,6 +321,17 @@ struct ProgramPadView: View {
             .festivalScreenBackground()
         }
         .background(Color.festivalProgramBackground)
+        .onChange(of: programFocusGeneration) { _, generation in
+            advanceToCurrentWeek(generation: generation)
+        }
+        .onChange(of: program.weeks.count) { _, _ in
+            advanceToCurrentWeek(generation: programFocusGeneration)
+        }
+    }
+
+    private func advanceToCurrentWeek(generation: Int) {
+        guard generation > 0, !program.weeks.isEmpty else { return }
+        selectedWeek = program.weeks[program.weeks.indexOfWeek(for: Date())]
     }
 
     private func subtitle(for week: FestivalWeek) -> String {
@@ -323,6 +349,7 @@ struct ProgramPadView: View {
 
 struct ProgramRootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    var programFocusGeneration: Int = 0
 
     /// `horizontalSizeClass` can be `nil` for the first layout pass; treating that as non-regular
     /// avoids showing `NavigationSplitView` iPad chrome on iPhone (often reads as a blank screen).
@@ -332,9 +359,9 @@ struct ProgramRootView: View {
 
     var body: some View {
         if usePadProgramLayout {
-            ProgramPadView()
+            ProgramPadView(programFocusGeneration: programFocusGeneration)
         } else {
-            ProgramPhoneView()
+            ProgramPhoneView(programFocusGeneration: programFocusGeneration)
         }
     }
 }

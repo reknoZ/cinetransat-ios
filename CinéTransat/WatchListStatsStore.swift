@@ -2,14 +2,14 @@
 //  WatchListStatsStore.swift
 //  CinéTransat
 //
-//  Transition: displayed count = legacy `watchlistStats.count` + `watchlistDevices.devices`.count
-//  until the legacy collection is retired. New writes go only to `watchlistDevices`.
+//  Watch list popularity = `watchlistDevices/{screeningId}.devices`.count.
+//  On app open, sync reconciles local storage with Firestore (including reinstall restore).
 //
 
 import Combine
 import Foundation
+import Network
 import OSLog
-import Security
 
 #if canImport(FirebaseFirestore)
 import FirebaseFirestore
@@ -18,107 +18,68 @@ import FirebaseFirestore
 @MainActor
 final class WatchListStatsStore: ObservableObject {
     private static let logger = Logger(subsystem: "com.heewhack.CineTransat", category: "WatchListStats")
+    private static let pendingDeltasKey = "watchlistStatsPendingDeltas"
 
-    /// Combined headcount shown in the UI (legacy + devices during transition).
+    /// Screening day key (`yyyyMMdd`) → number of distinct installs interested.
     @Published private(set) var countByScreeningID: [String: Int] = [:]
 
     #if canImport(FirebaseFirestore)
     private lazy var db = Firestore.firestore()
-    private var listeners: [String: ScreeningListeners] = [:]
-    private var legacyFlatCountByScreeningID: [String: Int] = [:]
-    private var legacyFlatDocumentExists: [String: Bool] = [:]
-    private var legacyNestedCountByScreeningID: [String: Int] = [:]
-    private var legacyNestedDocumentExists: [String: Bool] = [:]
+    private var listeners: [String: ListenerRegistration] = [:]
     private var devicesCountByScreeningID: [String: Int] = [:]
+    private var pathMonitor: NWPathMonitor?
     #endif
 
-    private var activeSyncTask: Task<Void, Never>?
-    private var cachedContributedIDs: Set<String>?
-    private var cachedContributedDeviceID: String?
+    private var activeSyncTask: Task<Set<String>, Never>?
 
-    private static let devicesSchemaV2MigrationKeychainAccount = "watchlistDevicesSchemaV2Migrated"
-
-    #if canImport(FirebaseFirestore)
-    private struct ScreeningListeners {
-        var legacyFlat: ListenerRegistration?
-        var legacyNested: ListenerRegistration?
-        var devices: ListenerRegistration?
+    init() {
+        #if canImport(FirebaseFirestore)
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard path.status == .satisfied else { return }
+            Task { @MainActor in
+                await self?.onFirestoreServerReachable()
+            }
+        }
+        monitor.start(queue: DispatchQueue(label: "WatchListStats.network"))
+        pathMonitor = monitor
+        #endif
     }
-    #endif
 
     func count(screeningId: String) -> Int? {
         countByScreeningID[screeningId]
     }
 
+    /// Immediate UI bump while the Firestore write is in flight.
+    func applyOptimisticDelta(screeningId: String, delta: Int) {
+        guard delta == 1 || delta == -1 else { return }
+        let next = max(0, (countByScreeningID[screeningId] ?? 0) + delta)
+        setCount(next, for: screeningId)
+    }
+
     func startObserving(screeningId: String) {
         guard !AppStoreScreenshotConfiguration.isActive else { return }
         #if canImport(FirebaseFirestore)
-        var bucket = listeners[screeningId] ?? ScreeningListeners()
-
-        if bucket.devices == nil {
-            let ref = db.document(FirestorePaths.watchlistDevices(screeningId: screeningId))
-            bucket.devices = ref.addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
-                Task { @MainActor in
-                    if let error {
-                        Self.logger.error("Devices listener (\(screeningId)): \(error.localizedDescription)")
-                        return
-                    }
-                    self.devicesCountByScreeningID[screeningId] = Self.deviceCount(from: snapshot?.data())
-                    self.publishCombinedCount(for: screeningId)
+        guard listeners[screeningId] == nil else { return }
+        let ref = db.document(FirestorePaths.watchlistDevices(screeningId: screeningId))
+        listeners[screeningId] = ref.addSnapshotListener { [weak self] snapshot, error in
+            guard let self else { return }
+            Task { @MainActor in
+                if let error {
+                    Self.logger.error("Devices listener (\(screeningId)): \(error.localizedDescription)")
+                    return
                 }
+                self.devicesCountByScreeningID[screeningId] = Self.deviceCount(from: snapshot?.data())
+                self.publishCount(for: screeningId)
             }
         }
-
-        if bucket.legacyFlat == nil {
-            let ref = db.document(FirestorePaths.watchlistStatsLegacy(screeningId: screeningId))
-            bucket.legacyFlat = ref.addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
-                Task { @MainActor in
-                    if let error {
-                        Self.logger.error("Legacy flat listener (\(screeningId)): \(error.localizedDescription)")
-                        return
-                    }
-                    self.legacyFlatDocumentExists[screeningId] = snapshot?.exists == true
-                    self.legacyFlatCountByScreeningID[screeningId] = Self.legacyCount(from: snapshot?.data())
-                    self.publishCombinedCount(for: screeningId)
-                }
-            }
-        }
-
-        if bucket.legacyNested == nil {
-            let seasonYear = Self.seasonYear(for: screeningId)
-            let ref = db.document(
-                FirestorePaths.watchlistStatsLegacyNested(seasonYear: seasonYear, screeningId: screeningId)
-            )
-            bucket.legacyNested = ref.addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
-                Task { @MainActor in
-                    if let error {
-                        Self.logger.error("Legacy nested listener (\(screeningId)): \(error.localizedDescription)")
-                        return
-                    }
-                    self.legacyNestedDocumentExists[screeningId] = snapshot?.exists == true
-                    self.legacyNestedCountByScreeningID[screeningId] = Self.legacyCount(from: snapshot?.data())
-                    self.publishCombinedCount(for: screeningId)
-                }
-            }
-        }
-
-        listeners[screeningId] = bucket
         #endif
     }
 
     func stopObserving(screeningId: String) {
         #if canImport(FirebaseFirestore)
-        listeners[screeningId]?.legacyFlat?.remove()
-        listeners[screeningId]?.legacyNested?.remove()
-        listeners[screeningId]?.devices?.remove()
+        listeners[screeningId]?.remove()
         listeners[screeningId] = nil
-        legacyFlatCountByScreeningID[screeningId] = nil
-        legacyFlatDocumentExists[screeningId] = nil
-        legacyNestedCountByScreeningID[screeningId] = nil
-        legacyNestedDocumentExists[screeningId] = nil
         devicesCountByScreeningID[screeningId] = nil
         #endif
     }
@@ -143,11 +104,108 @@ final class WatchListStatsStore: ObservableObject {
         #endif
     }
 
+    func onFirestoreServerReachable() async {
+        guard !AppStoreScreenshotConfiguration.isActive else { return }
+        #if canImport(FirebaseFirestore)
+        try? await db.enableNetwork()
+        await flushPendingDeltas()
+        #endif
+    }
+
     @discardableResult
-    func recordDelta(screeningId: String, seasonYear: Int, delta: Int) async -> Bool {
+    func recordDelta(screeningId: String, delta: Int) async -> Bool {
         guard delta == 1 || delta == -1 else { return false }
         guard !AppStoreScreenshotConfiguration.isActive else { return false }
+        let success = await attemptServerDelta(screeningId: screeningId, delta: delta)
+        if !success {
+            enqueuePendingDelta(screeningId: screeningId, delta: delta)
+        }
+        return success
+    }
+
+    /// Reconcile local watch list with Firestore for this install.
+    /// Returns the watch list IDs that should be stored locally (unchanged, or restored on reinstall).
+    func syncWithLocalWatchList(_ localIDs: Set<String>) async -> Set<String> {
+        if let activeSyncTask {
+            return await activeSyncTask.value
+        }
+
+        let task = Task { @MainActor in
+            await self.performSyncWithLocalWatchList(localIDs)
+        }
+        activeSyncTask = task
+        let result = await task.value
+        activeSyncTask = nil
+        return result
+    }
+
+    func flushPendingDeltas() async {
+        guard !AppStoreScreenshotConfiguration.isActive else { return }
         #if canImport(FirebaseFirestore)
+        try? await db.enableNetwork()
+
+        var pending = loadPendingDeltas()
+        guard !pending.isEmpty else { return }
+
+        Self.logger.info("Flushing \(pending.count) pending watchlist write(s)")
+        var remaining: [PendingDelta] = []
+        for entry in pending {
+            let success = await attemptServerDelta(screeningId: entry.screeningId, delta: entry.delta)
+            if !success {
+                remaining.append(entry)
+            }
+        }
+        savePendingDeltas(remaining)
+        #endif
+    }
+
+    /// How many *other* people (excluding the current user when in the watch list).
+    static func othersCount(total: Int, inWatchList: Bool) -> Int {
+        guard total > 0 else { return 0 }
+        return inWatchList ? max(0, total - 1) : total
+    }
+
+    private func performSyncWithLocalWatchList(_ localIDs: Set<String>) async -> Set<String> {
+        guard !AppStoreScreenshotConfiguration.isActive else { return localIDs }
+        #if canImport(FirebaseFirestore)
+        try? await db.enableNetwork()
+
+        let remoteIDs = await fetchContributedScreeningIDs()
+        Self.logger.info(
+            "syncWithLocalWatchList local=\(localIDs.count) remote=\(remoteIDs.count)"
+        )
+
+        let reconciled: Set<String>
+        if localIDs.isEmpty, !remoteIDs.isEmpty {
+            Self.logger.info("Reinstall restore — \(remoteIDs.count) screening(s) from Firestore")
+            reconciled = remoteIDs
+        } else {
+            for id in localIDs.subtracting(remoteIDs) {
+                await registerDevice(screeningId: id)
+            }
+            for id in remoteIDs.subtracting(localIDs) {
+                await unregisterDevice(screeningId: id)
+            }
+            reconciled = localIDs
+        }
+
+        await flushPendingDeltas()
+        return reconciled
+        #else
+        return localIDs
+        #endif
+    }
+
+    #if canImport(FirebaseFirestore)
+    private func registerDevice(screeningId: String) async {
+        _ = await attemptServerDelta(screeningId: screeningId, delta: 1)
+    }
+
+    private func unregisterDevice(screeningId: String) async {
+        _ = await attemptServerDelta(screeningId: screeningId, delta: -1)
+    }
+
+    private func attemptServerDelta(screeningId: String, delta: Int) async -> Bool {
         let deviceId = AnonymousDeviceIdentity.deviceID
         let ref = db.document(FirestorePaths.watchlistDevices(screeningId: screeningId))
 
@@ -155,6 +213,7 @@ final class WatchListStatsStore: ObservableObject {
             if delta == 1 {
                 let snap = try await ref.getDocument()
                 if Self.devices(from: snap.data()).contains(deviceId) {
+                    removePendingDelta(screeningId: screeningId, delta: delta)
                     return true
                 }
                 try await ref.setData(
@@ -163,11 +222,14 @@ final class WatchListStatsStore: ObservableObject {
                 )
             } else {
                 let snap = try await ref.getDocument()
-                guard Self.devices(from: snap.data()).contains(deviceId) else { return true }
+                guard Self.devices(from: snap.data()).contains(deviceId) else {
+                    removePendingDelta(screeningId: screeningId, delta: delta)
+                    return true
+                }
                 try await ref.updateData(["devices": FieldValue.arrayRemove([deviceId])])
             }
 
-            invalidateContributionCache()
+            removePendingDelta(screeningId: screeningId, delta: delta)
             Self.logger.info(
                 "Devices \(delta == 1 ? "+" : "−")1 for \(screeningId) (…\(deviceId.suffix(6)))"
             )
@@ -176,161 +238,59 @@ final class WatchListStatsStore: ObservableObject {
             Self.logger.error("Write failed \(screeningId) Δ\(delta): \(error.localizedDescription)")
             return false
         }
-        #else
-        return false
-        #endif
-    }
-
-    func syncWithLocalWatchList(_ screeningIDs: Set<String>, seasonYear: Int) async {
-        if let activeSyncTask {
-            await activeSyncTask.value
-            return
-        }
-
-        let task = Task { @MainActor in
-            await self.performSyncWithLocalWatchList(screeningIDs, seasonYear: seasonYear)
-        }
-        activeSyncTask = task
-        await task.value
-        activeSyncTask = nil
-    }
-
-    private func performSyncWithLocalWatchList(_ screeningIDs: Set<String>, seasonYear: Int) async {
-        guard !AppStoreScreenshotConfiguration.isActive else { return }
-        await migrateToDevicesSchemaV2IfNeeded(localWatchlistIDs: screeningIDs, seasonYear: seasonYear)
-
-        var contributed = await fetchContributedScreeningIDs()
-
-        for id in contributed where !screeningIDs.contains(id) {
-            _ = await recordDelta(screeningId: id, seasonYear: seasonYear, delta: -1)
-            contributed.remove(id)
-        }
-
-        for id in screeningIDs where !contributed.contains(id) {
-            if await recordDelta(screeningId: id, seasonYear: seasonYear, delta: 1) {
-                contributed.insert(id)
-            }
-        }
-    }
-
-    private func migrateToDevicesSchemaV2IfNeeded(
-        localWatchlistIDs: Set<String>,
-        seasonYear: Int
-    ) async {
-        if Self.hasCompletedDevicesSchemaV2Migration { return }
-        // Builds before Keychain flag used UserDefaults — treat as already migrated.
-        if UserDefaults.standard.bool(forKey: "watchlistDevicesSchemaV2Migrated") {
-            Self.markDevicesSchemaV2MigrationComplete()
-            return
-        }
-
-        let legacyDefaultsIDs = legacyUserDefaultsContributedIDs(seasonYear: seasonYear)
-        clearLegacyUserDefaultsContributions(seasonYear: seasonYear)
-
-        let idsToRegister = localWatchlistIDs.union(legacyDefaultsIDs)
-        for id in idsToRegister {
-            _ = await recordDelta(screeningId: id, seasonYear: seasonYear, delta: 1)
-        }
-        for id in legacyDefaultsIDs {
-            await relinquishLegacyContribution(screeningId: id, seasonYear: seasonYear)
-        }
-
-        Self.markDevicesSchemaV2MigrationComplete()
-        invalidateContributionCache()
-        Self.logger.info(
-            "watchlistDevices v2 migration — registered \(idsToRegister.count) screening(s), relinquished legacy for \(legacyDefaultsIDs.count)"
-        )
-    }
-
-    // MARK: - Legacy transition
-
-    #if canImport(FirebaseFirestore)
-    /// Drop this install's old +1 from legacy `watchlistStats` after registering in `watchlistDevices`.
-    private func relinquishLegacyContribution(screeningId: String, seasonYear: Int) async {
-        let flatRef = db.document(FirestorePaths.watchlistStatsLegacy(screeningId: screeningId))
-        let nestedRef = db.document(
-            FirestorePaths.watchlistStatsLegacyNested(seasonYear: seasonYear, screeningId: screeningId)
-        )
-
-        for ref in [flatRef, nestedRef] {
-            do {
-                let changed = try await db.runTransaction { transaction, errorPointer -> Any? in
-                    let snapshot: DocumentSnapshot
-                    do {
-                        snapshot = try transaction.getDocument(ref)
-                    } catch {
-                        errorPointer?.pointee = error as NSError
-                        return nil
-                    }
-                    guard snapshot.exists else { return false }
-                    let current = Self.legacyCount(from: snapshot.data())
-                    guard current > 0 else { return false }
-                    transaction.setData(["count": current - 1], forDocument: ref, merge: true)
-                    return true
-                }
-                if changed as? Bool == true {
-                    Self.logger.debug("Legacy relinquish −1 for \(screeningId) at \(ref.path)")
-                    return
-                }
-            } catch {
-                Self.logger.debug("Legacy relinquish skipped for \(screeningId): \(error.localizedDescription)")
-            }
-        }
-    }
-
-    private func publishCombinedCount(for screeningId: String) {
-        let legacy = effectiveLegacyCount(for: screeningId)
-        let devices = devicesCountByScreeningID[screeningId] ?? 0
-        setCount(legacy + devices, for: screeningId)
-    }
-
-    private func effectiveLegacyCount(for screeningId: String) -> Int {
-        if legacyFlatDocumentExists[screeningId] == true {
-            return legacyFlatCountByScreeningID[screeningId] ?? 0
-        }
-        if legacyNestedDocumentExists[screeningId] == true {
-            return legacyNestedCountByScreeningID[screeningId] ?? 0
-        }
-        return 0
     }
 
     private func fetchContributedScreeningIDs() async -> Set<String> {
         let deviceId = AnonymousDeviceIdentity.deviceID
-        if cachedContributedDeviceID == deviceId, let cachedContributedIDs {
-            return cachedContributedIDs
+        do {
+            let snapshot = try await db.collection(FirestorePaths.watchlistDevicesCollection)
+                .whereField("devices", arrayContains: deviceId)
+                .getDocuments()
+            return Set(snapshot.documents.map(\.documentID))
+        } catch {
+            Self.logger.warning("Contributed IDs query failed: \(error.localizedDescription)")
+            return []
         }
-
-        let snapshot = try? await db.collection(FirestorePaths.watchlistDevicesCollection)
-            .whereField("devices", arrayContains: deviceId)
-            .getDocuments()
-        let ids = Set(snapshot?.documents.map(\.documentID) ?? [])
-        cachedContributedDeviceID = deviceId
-        cachedContributedIDs = ids
-        return ids
     }
-    #else
-    private func fetchContributedScreeningIDs() async -> Set<String> { [] }
+
+    private func publishCount(for screeningId: String) {
+        let count = devicesCountByScreeningID[screeningId] ?? 0
+        setCount(count, for: screeningId)
+    }
     #endif
 
-    private func invalidateContributionCache() {
-        cachedContributedIDs = nil
-        cachedContributedDeviceID = nil
+    private struct PendingDelta: Codable, Equatable {
+        let screeningId: String
+        let delta: Int
     }
 
-    private func legacyUserDefaultsContributedIDs(seasonYear: Int) -> Set<String> {
-        Set(UserDefaults.standard.stringArray(forKey: "watchlistStatsContributed_\(seasonYear)") ?? [])
+    private func enqueuePendingDelta(screeningId: String, delta: Int) {
+        var pending = loadPendingDeltas()
+        pending.removeAll { $0.screeningId == screeningId && $0.delta == -delta }
+        pending.append(PendingDelta(screeningId: screeningId, delta: delta))
+        savePendingDeltas(pending)
+        Self.logger.info("Queued pending Δ\(delta) for \(screeningId) (count=\(pending.count))")
     }
 
-    private func clearLegacyUserDefaultsContributions(seasonYear: Int) {
-        UserDefaults.standard.removeObject(forKey: "watchlistStatsContributed_\(seasonYear)")
-        UserDefaults.standard.removeObject(forKey: "watchlistStatsBackfillCompleted_\(seasonYear)")
+    private func removePendingDelta(screeningId: String, delta: Int) {
+        var pending = loadPendingDeltas()
+        pending.removeAll { $0.screeningId == screeningId && $0.delta == delta }
+        savePendingDeltas(pending)
     }
 
-    private static func seasonYear(for screeningId: String) -> Int {
-        guard screeningId.count >= 4, let year = Int(screeningId.prefix(4)) else {
-            return FestivalProgramBootstrap.seasonYear
+    private func loadPendingDeltas() -> [PendingDelta] {
+        guard let data = UserDefaults.standard.data(forKey: Self.pendingDeltasKey) else { return [] }
+        return (try? JSONDecoder().decode([PendingDelta].self, from: data)) ?? []
+    }
+
+    private func savePendingDeltas(_ deltas: [PendingDelta]) {
+        if deltas.isEmpty {
+            UserDefaults.standard.removeObject(forKey: Self.pendingDeltasKey)
+            return
         }
-        return year
+        if let data = try? JSONEncoder().encode(deltas) {
+            UserDefaults.standard.set(data, forKey: Self.pendingDeltasKey)
+        }
     }
 
     private static func devices(from data: [String: Any]?) -> [String] {
@@ -341,64 +301,10 @@ final class WatchListStatsStore: ObservableObject {
         devices(from: data).count
     }
 
-    private static func legacyCount(from data: [String: Any]?) -> Int {
-        guard let raw = data?["count"] else { return 0 }
-        if let value = raw as? Int { return max(0, value) }
-        if let value = raw as? Int64 { return max(0, Int(value)) }
-        if let value = raw as? NSNumber { return max(0, value.intValue) }
-        if let value = raw as? Double { return max(0, Int(value)) }
-        return 0
-    }
-
     private func setCount(_ count: Int, for screeningId: String) {
         var updated = countByScreeningID
         if updated[screeningId] == count { return }
         updated[screeningId] = count
         countByScreeningID = updated
-    }
-
-    // MARK: - Keychain migration flag (survives reinstall; avoids repeat legacy −1)
-
-    private static var hasCompletedDevicesSchemaV2Migration: Bool {
-        readKeychainFlag(account: devicesSchemaV2MigrationKeychainAccount) == "1"
-    }
-
-    private static func markDevicesSchemaV2MigrationComplete() {
-        saveKeychainFlag(account: devicesSchemaV2MigrationKeychainAccount, value: "1")
-    }
-
-    private static func readKeychainFlag(account: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "ch.heewhack.CineTransat.flags",
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        guard status == errSecSuccess, let data = item as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    private static func saveKeychainFlag(account: String, value: String) {
-        guard let data = value.data(using: .utf8) else { return }
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "ch.heewhack.CineTransat.flags",
-            kSecAttrAccount as String: account,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-        ]
-        let status = SecItemAdd(query as CFDictionary, nil)
-        if status == errSecDuplicateItem {
-            let update: [String: Any] = [kSecValueData as String: data]
-            let match: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: "ch.heewhack.CineTransat.flags",
-                kSecAttrAccount as String: account,
-            ]
-            SecItemUpdate(match as CFDictionary, update as CFDictionary)
-        }
     }
 }

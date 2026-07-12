@@ -72,7 +72,7 @@ private struct RootWithLaunchSplash: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, !showSplash else { return }
             Task {
-                await watchList.syncAnonymousStatsWithLocalWatchList(seasonYear: programStore.seasonYear)
+                await watchList.syncAnonymousStatsWithLocalWatchList()
             }
         }
     }
@@ -83,7 +83,7 @@ private struct RootWithLaunchSplash: View {
         }
         Task {
             await programStore.completePostLaunchSetup()
-            await watchList.syncAnonymousStatsWithLocalWatchList(seasonYear: programStore.seasonYear)
+            await watchList.syncAnonymousStatsWithLocalWatchList()
             withAnimation(.easeOut(duration: 0.25)) {
                 showSplash = false
             }

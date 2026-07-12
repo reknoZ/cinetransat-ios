@@ -19,6 +19,9 @@ struct MoviePosterCell: View {
     var watchListEnabled: Bool = true
     /// Top-left day pill on the poster (e.g. off for Watch List rows where the date appears beside the title).
     var showDateBadge: Bool = true
+    /// Watch list tab: dim poster and show countdown while a removal is pending.
+    var isPendingRemoval: Bool = false
+    var removalSecondsLeft: Int = 5
     /// When set, the bookmark is a tappable button (e.g. detail page and Programme grid).
     var onWatchListToggle: (() -> Void)? = nil
 
@@ -96,6 +99,22 @@ struct MoviePosterCell: View {
                         Text(L10n.text("screening_canceled_badge", language: appLanguage))
                             .font(canceledAnnuleFont)
                             .foregroundStyle(.white)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            }
+        }
+        .overlay {
+            if isPendingRemoval {
+                ZStack {
+                    Color.black.opacity(0.58)
+                    VStack(spacing: 8) {
+                        ProgressView()
+                            .tint(.white)
+                        Text("\(removalSecondsLeft)")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(.white)
+                            .monospacedDigit()
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))

@@ -12,6 +12,47 @@ enum FestivalCalendar {
         c.locale = Locale(identifier: "fr_CH")
         return c
     }
+
+    static var startOfToday: Date {
+        startOfDay(for: Date())
+    }
+
+    static func startOfDay(for date: Date) -> Date {
+        current.startOfDay(for: date)
+    }
+}
+
+extension Array where Element == Screening {
+    /// Screenings scheduled on `date` in Geneva (includes canceled).
+    func screenings(on date: Date) -> [Screening] {
+        let targetDay = FestivalCalendar.startOfDay(for: date)
+        return filter { $0.festivalDay == targetDay }
+            .sorted { $0.startsAt < $1.startsAt }
+    }
+
+    func screeningsToday() -> [Screening] {
+        screenings(on: Date())
+    }
+}
+
+extension Array where Element == FestivalWeek {
+    /// Week pager index for `date` — current week, next upcoming, or last week if the festival ended.
+    func indexOfWeek(for date: Date = Date()) -> Int {
+        guard !isEmpty else { return 0 }
+        let targetDay = FestivalCalendar.startOfDay(for: date)
+
+        if let exact = firstIndex(where: { week in
+            week.orderedScreenings.contains { $0.festivalDay == targetDay }
+        }) {
+            return exact
+        }
+        if let upcoming = firstIndex(where: { week in
+            week.orderedScreenings.contains { $0.festivalDay >= targetDay }
+        }) {
+            return upcoming
+        }
+        return count - 1
+    }
 }
 
 struct FestivalWeek: Identifiable, Hashable {
@@ -135,10 +176,12 @@ struct Screening: Identifiable, Hashable {
 
     /// Screening day (Geneva) is before today — shown dimmed with a “past” badge in the UI.
     var hasPassed: Bool {
-        let cal = FestivalCalendar.current
-        let today = cal.startOfDay(for: Date())
-        let screeningDay = cal.startOfDay(for: startsAt)
-        return screeningDay < today
+        festivalDay < FestivalCalendar.startOfToday
+    }
+
+    /// Calendar day of this screening in Geneva (Europe/Zurich).
+    var festivalDay: Date {
+        FestivalCalendar.startOfDay(for: startsAt)
     }
 
     /// Placeholder poster (grey + clapperboard) — programme not yet announced.

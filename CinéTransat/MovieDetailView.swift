@@ -10,6 +10,7 @@ import EventKit
 enum MovieDetailLineupScope: Hashable {
     case fullProgram
     case watchListOnly
+    case todayOnly
 }
 
 struct MovieDetailView: View {
@@ -44,6 +45,8 @@ struct MovieDetailView: View {
             program.allScreenings
         case .watchListOnly:
             watchList.orderedWatchListScreenings(in: program.weeks)
+        case .todayOnly:
+            program.allScreenings.screeningsToday()
         }
     }
 
@@ -61,6 +64,10 @@ struct MovieDetailView: View {
         return navigableLineup[i + 1]
     }
 
+    private var showsFilmNavigation: Bool {
+        lineupScope != .todayOnly
+    }
+
     private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
         let mayAdd = program.canAddToWatchList(screening)
         guard mayAdd || watchList.contains(screening) else { return nil }
@@ -70,26 +77,58 @@ struct MovieDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                HStack(alignment: .center, spacing: 12) {
-                    if let prev = previousScreening {
-                        Button {
-                            screening = prev
-                        } label: {
+                if showsFilmNavigation {
+                    HStack(alignment: .center, spacing: 12) {
+                        if let prev = previousScreening {
+                            Button {
+                                screening = prev
+                            } label: {
+                                Image(systemName: "chevron.left")
+                                    .font(.title2.weight(.semibold))
+                                    .frame(minWidth: 44, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(L10n.text("detail_previous_film", language: appLanguage))
+                        } else {
                             Image(systemName: "chevron.left")
                                 .font(.title2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
                                 .frame(minWidth: 44, minHeight: 44)
-                                .contentShape(Rectangle())
+                                .accessibilityHidden(true)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(L10n.text("detail_previous_film", language: appLanguage))
-                    } else {
-                        Image(systemName: "chevron.left")
-                            .font(.title2.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                            .frame(minWidth: 44, minHeight: 44)
-                            .accessibilityHidden(true)
-                    }
 
+                        MoviePosterCell(
+                            screening: screening,
+                            compact: false,
+                            isOnWatchList: watchList.contains(screening),
+                            watchListEnabled: program.canAddToWatchList(screening),
+                            onWatchListToggle: watchListToggleAction(for: screening)
+                        )
+                        .id(screening.id)
+                        .frame(maxWidth: 280)
+
+                        if let next = nextScreening {
+                            Button {
+                                screening = next
+                            } label: {
+                                Image(systemName: "chevron.right")
+                                    .font(.title2.weight(.semibold))
+                                    .frame(minWidth: 44, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(L10n.text("detail_next_film", language: appLanguage))
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.title2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                } else {
                     MoviePosterCell(
                         screening: screening,
                         compact: false,
@@ -97,29 +136,9 @@ struct MovieDetailView: View {
                         watchListEnabled: program.canAddToWatchList(screening),
                         onWatchListToggle: watchListToggleAction(for: screening)
                     )
-                    .id(screening.id)
                     .frame(maxWidth: 280)
-
-                    if let next = nextScreening {
-                        Button {
-                            screening = next
-                        } label: {
-                            Image(systemName: "chevron.right")
-                                .font(.title2.weight(.semibold))
-                                .frame(minWidth: 44, minHeight: 44)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(L10n.text("detail_next_film", language: appLanguage))
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .font(.title2.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                            .frame(minWidth: 44, minHeight: 44)
-                            .accessibilityHidden(true)
-                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
 
                 VStack(alignment: .leading, spacing: 8) {
                     if screening.isCanceled {
@@ -148,9 +167,7 @@ struct MovieDetailView: View {
 
                     ScreeningFactsGrid(screening: screening, language: appLanguage)
 
-                    if screening.hasLanguageInfo {
-                        ScreeningLanguageRow(screening: screening, language: appLanguage)
-                    }
+                    ScreeningLanguageRow(screening: screening, language: appLanguage)
 
                     if !screening.isCanceled {
                         Button {
@@ -254,20 +271,18 @@ private struct ScreeningLanguageRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            if let audio = screening.localizedAudioLanguage(language: language) {
-                languageColumn(
-                    symbol: "mouth.fill",
-                    label: L10n.text("detail_audio_language", language: language),
-                    value: audio
-                )
-            }
-            if let subtitles = screening.localizedSubtitleLanguage(language: language) {
-                languageColumn(
-                    symbol: "captions.bubble",
-                    label: L10n.text("detail_subtitles", language: language),
-                    value: subtitles
-                )
-            }
+            languageColumn(
+                symbol: "mouth.fill",
+                label: L10n.text("detail_audio_language", language: language),
+                value: screening.localizedAudioLanguage(language: language)
+                    ?? L10n.text("detail_language_unspecified", language: language)
+            )
+            languageColumn(
+                symbol: "captions.bubble",
+                label: L10n.text("detail_subtitles", language: language),
+                value: screening.localizedSubtitleLanguage(language: language)
+                    ?? L10n.text("detail_language_unspecified", language: language)
+            )
         }
         .padding(.vertical, 4)
     }

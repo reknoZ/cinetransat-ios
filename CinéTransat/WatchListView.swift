@@ -12,6 +12,10 @@ struct WatchListView: View {
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
     @State private var isAddingAllToCalendar = false
     @State private var calendarResultAlert: CalendarResultAlert?
+    @State private var pendingRemovalId: String?
+    @State private var removalSecondsLeft = 5
+
+    private static let removalDelaySeconds = 5
 
     private enum CalendarResultAlert: Identifiable {
         case denied
@@ -46,8 +50,9 @@ struct WatchListView: View {
     }
 
     private func othersCount(for screening: Screening) -> Int? {
-        guard let total = watchListStats.count(screeningId: screening.id), total > 1 else { return nil }
-        return total - 1
+        guard let total = watchListStats.count(screeningId: screening.id) else { return nil }
+        let others = WatchListStatsStore.othersCount(total: total, inWatchList: true)
+        return others > 0 ? others : nil
     }
 
     var body: some View {
@@ -100,6 +105,19 @@ struct WatchListView: View {
             }
             .onDisappear {
                 watchListStats.stopAllObservations()
+                pendingRemovalId = nil
+            }
+            .task(id: pendingRemovalId) {
+                guard let id = pendingRemovalId else { return }
+                for seconds in stride(from: Self.removalDelaySeconds, through: 1, by: -1) {
+                    removalSecondsLeft = seconds
+                    try? await Task.sleep(for: .seconds(1))
+                    if Task.isCancelled { return }
+                }
+                guard pendingRemovalId == id,
+                      let screening = listedScreenings.first(where: { $0.id == id }) else { return }
+                watchList.toggle(screening, seasonYear: program.seasonYear, mayAdd: false)
+                pendingRemovalId = nil
             }
             .alert(item: $calendarResultAlert) { alert in
                 switch alert {
@@ -156,7 +174,9 @@ struct WatchListView: View {
     }
 
     private func watchListRow(for screening: Screening) -> some View {
-        HStack(spacing: 12) {
+        let isPendingRemoval = pendingRemovalId == screening.id
+
+        return HStack(spacing: 12) {
             MoviePosterCell(
                 screening: screening,
                 compact: true,
@@ -164,8 +184,15 @@ struct WatchListView: View {
                 isOnWatchList: true,
                 watchListEnabled: true,
                 showDateBadge: false,
+                isPendingRemoval: isPendingRemoval,
+                removalSecondsLeft: removalSecondsLeft,
                 onWatchListToggle: {
-                    watchList.toggle(screening, seasonYear: program.seasonYear, mayAdd: false)
+                    if isPendingRemoval {
+                        pendingRemovalId = nil
+                    } else {
+                        pendingRemovalId = screening.id
+                        removalSecondsLeft = Self.removalDelaySeconds
+                    }
                 }
             )
 

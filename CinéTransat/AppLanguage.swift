@@ -30,6 +30,7 @@ enum L10n {
     static func text(_ key: String, language: AppLanguage) -> String {
         let table: [String: (fr: String, en: String)] = [
             "tab_program": ("Programme", "Program"),
+            "tab_today": ("Aujourd'hui", "Today"),
             "tab_watchlist": ("À voir", "Watchlist"),
             "watchlist_empty_title": ("Rien dans votre liste", "Nothing on your watch list yet"),
             "watchlist_empty_body": (
@@ -62,6 +63,7 @@ enum L10n {
             "detail_duration_variable": ("Variable", "Variable"),
             "detail_audio_language": ("Langue", "Language"),
             "detail_subtitles": ("Sous-titres", "Subtitles"),
+            "detail_language_unspecified": ("—", "—"),
             "detail_search_imdb": ("IMDb", "IMDb"),
             "detail_search_allocine": ("Allociné", "Allociné"),
             "detail_screening_canceled": ("Séance annulée", "Screening canceled"),
@@ -425,20 +427,6 @@ extension Screening {
 
     var releaseYear: Int? {
         PosterCatalog.releaseYear(forPosterKey: posterKey)
-    }
-
-    var hasLanguageInfo: Bool {
-        guard hasSpokenDialogue else { return false }
-        return localizedAudioLanguage(language: .fr) != nil || localizedSubtitleLanguage(language: .fr) != nil
-    }
-
-    private var hasSpokenDialogue: Bool {
-        let noDialogue = Set(["sans dialogue", "no dialogue"])
-        let audioLabels = [audioLanguage, audioLanguageEn]
-            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
-            .filter { !$0.isEmpty }
-        guard !audioLabels.isEmpty else { return true }
-        return !audioLabels.allSatisfy { noDialogue.contains($0) }
     }
 
     func localizedAudioLanguage(language: AppLanguage) -> String? {

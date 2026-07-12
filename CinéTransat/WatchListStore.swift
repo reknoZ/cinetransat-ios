@@ -6,11 +6,14 @@
 import Foundation
 import SwiftUI
 import Combine
+import OSLog
 
 /// Screenings the user marks as “planning to watch”. Stored on-device; anonymous aggregate
 /// counts are synced to Firestore when the user adds or removes an entry.
 @MainActor
 final class WatchListStore: ObservableObject {
+    private static let logger = Logger(subsystem: "com.heewhack.CineTransat", category: "WatchList")
+
     @Published private(set) var screeningIDs: Set<String>
 
     /// Kept for continuity with earlier builds (“favorites”).
@@ -29,15 +32,18 @@ final class WatchListStore: ObservableObject {
 
     func toggle(_ screening: Screening, seasonYear: Int, mayAdd: Bool = true) {
         let id = screening.watchListID
+        let delta: Int
         if screeningIDs.contains(id) {
             screeningIDs.remove(id)
-            persist()
-            Task { await statsStore.recordDelta(screeningId: id, seasonYear: seasonYear, delta: -1) }
+            delta = -1
         } else if mayAdd {
             screeningIDs.insert(id)
-            persist()
-            Task { await statsStore.recordDelta(screeningId: id, seasonYear: seasonYear, delta: 1) }
+            delta = 1
+        } else {
+            return
         }
+        persist()
+        enqueueStatsDelta(screeningId: id, delta: delta)
     }
 
     func replaceScreeningIDs(_ ids: Set<String>, persist shouldPersist: Bool = true) {
@@ -54,12 +60,24 @@ final class WatchListStore: ObservableObject {
             .sorted { $0.startsAt < $1.startsAt }
     }
 
-    func syncAnonymousStatsWithLocalWatchList(seasonYear: Int) async {
-        await statsStore.syncWithLocalWatchList(screeningIDs, seasonYear: seasonYear)
+    func syncAnonymousStatsWithLocalWatchList() async {
+        await statsStore.onFirestoreServerReachable()
+        let reconciled = await statsStore.syncWithLocalWatchList(screeningIDs)
+        if reconciled != screeningIDs {
+            replaceScreeningIDs(reconciled)
+            Self.logger.info("Restored \(reconciled.count) screening(s) from Firestore")
+        }
     }
 
     private func persist() {
         UserDefaults.standard.set(Array(screeningIDs).sorted(), forKey: defaultsKey)
+    }
+
+    private func enqueueStatsDelta(screeningId: String, delta: Int) {
+        statsStore.applyOptimisticDelta(screeningId: screeningId, delta: delta)
+        Task {
+            await statsStore.recordDelta(screeningId: screeningId, delta: delta)
+        }
     }
 }
 
