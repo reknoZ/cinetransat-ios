@@ -6,5 +6,6 @@
   "contactEmail": "info@cinetransat.ch",
   "facebookURL": "https://www.facebook.com/cinetransat",
   "instagramURL": "https://www.instagram.com/cinetransat",
-  "posterBaseURL": "https://cinetransat-497ce.web.app/posters/{posterKey}.jpg"
+  "posterBaseURL": "https://cinetransat-497ce.web.app/posters/{posterKey}.jpg",
+  "rattrapageVotingOpen": false
 }

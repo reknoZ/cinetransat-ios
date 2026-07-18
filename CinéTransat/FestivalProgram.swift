@@ -194,14 +194,52 @@ struct Screening: Identifiable, Hashable {
         posterKey == "tbd"
     }
 
-    /// IMDb / Allociné search links are shown as text only when false.
+    /// Special evenings (Soirée / CHOREOKE) — no IMDb / Allociné links.
+    var isSoireeEvening: Bool {
+        let foldedTitle = title
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_FR"))
+            .lowercased()
+        if foldedTitle.hasPrefix("soiree") { return true }
+        if foldedTitle == "choreoke" { return true }
+        let foldedKey = posterKey
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_FR"))
+            .lowercased()
+        return foldedKey.hasPrefix("soiree")
+    }
+
+    var isRattrapageEvening: Bool {
+        if RattrapageVotingDebug.isPretendRattrapage(id) { return true }
+        let foldedTitle = title
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_FR"))
+            .lowercased()
+        if foldedTitle.contains("rattrapage") { return true }
+        let foldedKey = posterKey
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_FR"))
+            .lowercased()
+        return foldedKey.contains("rattrapage")
+    }
+
+    /// IMDb / Allociné search links — off for TBD and Soirée evenings.
     var externalSearchLinksEnabled: Bool {
-        !usesTBDPlaceholderPoster && !searchTitle.isEmpty
+        !usesTBDPlaceholderPoster && !isSoireeEvening && !searchTitle.isEmpty
     }
 
     /// Programme title announced (not a TBD placeholder screening).
     var isProgramAnnounced: Bool {
         !usesTBDPlaceholderPoster
+    }
+}
+
+extension Array where Element == Screening {
+    /// Canceled films for Soirée Rattrapage, ordered by programme date.
+    func canceledForRattrapage(excludingRattrapageID: String? = nil) -> [Screening] {
+        filter { screening in
+            (screening.isCanceled || RattrapageVotingDebug.isPretendCanceled(screening.id))
+                && screening.isProgramAnnounced
+                && !screening.isRattrapageEvening
+                && screening.id != excludingRattrapageID
+        }
+        .sorted { $0.startsAt < $1.startsAt }
     }
 }
 

@@ -1,9 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Programme + nested Soirée Rattrapage votes on weeks[*].screenings[*].votes.
+    // Clients update this document when toggling a vote (transaction). CT Admin also writes here.
     match /seasons/{year} {
       allow read: if true;
-      allow write: if false;
+      allow create, delete: if false;
+      allow update: if true;
+    }
+    // CT Admin may toggle only `rattrapageVotingOpen` on publicConfig.
+    match /cinetransat/publicConfig {
+      allow read: if true;
+      allow create, delete: if false;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['rattrapageVotingOpen'])
+        && request.resource.data.rattrapageVotingOpen is bool;
     }
     match /cinetransat/{document=**} {
       allow read: if true;

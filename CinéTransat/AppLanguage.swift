@@ -53,7 +53,22 @@ enum L10n {
             "settings_about_version": ("Version", "Version"),
             "settings_language_help": ("Le changement de langue s’applique immédiatement à l’interface principale.", "Language changes apply immediately to the main interface."),
             "about_intro": ("Six semaines en été, quatre soirs par semaine : cinéma gratuit en plein air après le coucher du soleil.", "Six weeks in summer, four nights each week: free open-air cinema after sunset."),
-            "festival_rattrapage_vote": ("Vote pour la Soirée Rattrapage : bientôt disponible", "Vote for Soirée Rattrapage: coming soon"),
+            "rattrapage_none_canceled": (
+                "Aucune séance n’a été annulée cette saison pour le moment.",
+                "No screenings have been canceled this season so far."
+            ),
+            "rattrapage_canceled_heading": (
+                "Quel film annulé avez-vous vraiment envie de voir ?",
+                "Which movie that was canceled do you really want to see?"
+            ),
+            "rattrapage_vote_add": ("Ajouter mon vote", "Add my vote"),
+            "rattrapage_vote_remove": ("Retirer mon vote", "Remove my vote"),
+            "rattrapage_votes_one": ("1 vote", "1 vote"),
+            "rattrapage_votes_many": ("%d votes", "%d votes"),
+            "rattrapage_voting_closed": (
+                "Le vote n’est pas encore ouvert.",
+                "Voting is not open yet."
+            ),
             "screening_passed": ("Passé", "Passed"),
             "detail_legal_age": ("Âge légal", "Legal age"),
             "detail_recommended_age": ("Âge suggéré", "Recommended age"),
@@ -347,6 +362,13 @@ enum L10n {
         }
         return String(format: text("watchlist_others_many", language: language), others)
     }
+
+    static func rattrapageTotalVotes(_ count: Int, language: AppLanguage) -> String {
+        if count == 1 {
+            return text("rattrapage_votes_one", language: language)
+        }
+        return String(format: text("rattrapage_votes_many", language: language), count)
+    }
 }
 
 enum FestivalDateFormatters {
@@ -410,6 +432,7 @@ extension Screening {
         let englishOverrides: [String: String] = [
             "Soirée choréoké": "Choréoké Night",
             "Soirée courts-métrages": "Short Film Night",
+            "Soirées courts-métrages": "Short Film Night",
             "Soirée rattrapage": "Make Up Night",
         ]
         return englishOverrides[title] ?? title

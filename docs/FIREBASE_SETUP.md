@@ -217,7 +217,23 @@ Implemented end-to-end. See **[NOTIFICATIONS.md](NOTIFICATIONS.md)** for APNs, F
 
 Users enable alerts in **Settings → Cancellation alerts** (subscribes to `season_{year}_cancellations`).
 
-## 9. Optional next steps
+## 9. Soirée Rattrapage votes
+
+Canceled films on the Rattrapage detail screen are listed by **programme date** (`startsAt`). Voting uses the same anonymous device UUID as the watch list.
+
+Public apps show the interactive poll only when **`cinetransat/publicConfig.rattrapageVotingOpen`** is `true` (CT Admin → Voting). Default is `false`. CT Admin may update only that field; seasons updates remain open for cancelations and nested `votes` arrays.
+
+Votes are stored **on the screening object** inside the season programme document:
+
+`seasons/{year}` → `weeks[i].screenings[j].votes` = `[deviceUuid, …]`
+
+Example: a vote for the film on `20260716` is appended to that screening’s `votes` array wherever it sits under `weeks` (e.g. `weeks[1].screenings[0]`).
+
+Clients toggle with a Firestore transaction on `seasons/{year}`. Deploy `firestore.rules` so that document allows `update` (needed for votes and CT Admin).
+
+You can delete leftover docs under the old unused path `seasons/{year}/screenings/{yyyyMMdd}`.
+
+## 10. Optional next steps
 
 - **Firebase Remote Config** for feature flags only (not required for programme data).
-- **Watch-list counts** in Firestore (separate collection; not implemented yet).
+- Tighten `seasons/{year}` write rules later (App Check / auth) once CT Admin signs in.

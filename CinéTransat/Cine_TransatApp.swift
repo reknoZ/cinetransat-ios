@@ -14,6 +14,7 @@ struct Cine_TransatApp: App {
     @StateObject private var programStore: FestivalProgramStore
     @StateObject private var watchListStatsStore: WatchListStatsStore
     @StateObject private var watchListStore: WatchListStore
+    @StateObject private var rattrapageVotesStore = RattrapageVotesStore()
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
     private var appLanguage: AppLanguage {
@@ -39,6 +40,7 @@ struct Cine_TransatApp: App {
                 .environmentObject(programStore)
                 .environmentObject(watchListStore)
                 .environmentObject(watchListStatsStore)
+                .environmentObject(rattrapageVotesStore)
                 .environment(\.locale, Locale(identifier: appLanguage.localeIdentifier))
                 .tint(Color.festivalAccent)
         }

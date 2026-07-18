@@ -14,6 +14,8 @@ struct FestivalPublicConfig: Equatable {
     let instagramURL: URL?
     /// URL template for posters. Use `{id}` (screening day `yyyyMMdd`) and optionally `{year}`.
     let posterBaseURL: String?
+    /// When true, Soirée Rattrapage shows the interactive vote UI (CT Admin toggle).
+    let rattrapageVotingOpen: Bool
 
     /// Active festival season (splash, defaults before Firestore loads).
     static let currentSeasonYear = 2026
@@ -25,7 +27,8 @@ struct FestivalPublicConfig: Equatable {
         contactEmail: "info@cinetransat.ch",
         facebookURL: URL(string: "https://www.facebook.com/cinetransat"),
         instagramURL: URL(string: "https://www.instagram.com/cinetransat"),
-        posterBaseURL: "https://cinetransat-497ce.web.app/posters/{posterKey}.jpg"
+        posterBaseURL: "https://cinetransat-497ce.web.app/posters/{posterKey}.jpg",
+        rattrapageVotingOpen: false
     )
 }
 
@@ -39,6 +42,7 @@ struct FestivalPublicConfigDocument: Codable {
     let facebookURL: String?
     let instagramURL: String?
     let posterBaseURL: String?
+    let rattrapageVotingOpen: Bool?
 }
 
 extension FestivalPublicConfig {
@@ -57,7 +61,8 @@ extension FestivalPublicConfig {
             contactEmail: document.contactEmail ?? defaults.contactEmail,
             facebookURL: document.facebookURL.flatMap(URL.init(string:)),
             instagramURL: document.instagramURL.flatMap(URL.init(string:)),
-            posterBaseURL: document.posterBaseURL
+            posterBaseURL: document.posterBaseURL,
+            rattrapageVotingOpen: document.rattrapageVotingOpen ?? false
         )
     }
 }

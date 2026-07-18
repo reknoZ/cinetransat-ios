@@ -17,6 +17,7 @@ struct MovieDetailView: View {
     @EnvironmentObject private var program: FestivalProgramStore
     @EnvironmentObject private var watchList: WatchListStore
     @EnvironmentObject private var watchListStats: WatchListStatsStore
+    @EnvironmentObject private var rattrapageVotes: RattrapageVotesStore
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
     let lineupScope: MovieDetailLineupScope
@@ -167,7 +168,9 @@ struct MovieDetailView: View {
 
                     ScreeningFactsGrid(screening: screening, language: appLanguage)
 
-                    ScreeningLanguageRow(screening: screening, language: appLanguage)
+                    if !screening.isRattrapageEvening {
+                        ScreeningLanguageRow(screening: screening, language: appLanguage)
+                    }
 
                     if !screening.isCanceled {
                         Button {
@@ -181,38 +184,48 @@ struct MovieDetailView: View {
                         }
                         .buttonStyle(.bordered)
                     }
+
+                    Text(screening.localizedSynopsis(language: appLanguage))
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .padding(.top, 4)
                 }
 
-                Text(screening.localizedSynopsis(language: appLanguage))
-                    .font(.body)
-                    .foregroundStyle(.primary)
+                if screening.isRattrapageEvening {
+                    RattrapageDetailSection(
+                        canceledScreenings: program.allScreenings.canceledForRattrapage(
+                            excludingRattrapageID: screening.id
+                        ),
+                        language: appLanguage,
+                        seasonYear: program.seasonYear,
+                        votingOpen: program.publicConfig.rattrapageVotingOpen,
+                        votes: rattrapageVotes
+                    )
+                }
 
-                HStack(alignment: .center) {
-                    HStack(spacing: 20) {
+                if screening.externalSearchLinksEnabled || screening.releaseYear != nil {
+                    HStack(alignment: .center) {
                         if screening.externalSearchLinksEnabled {
-                            Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
-                                Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
+                            HStack(spacing: 20) {
+                                Link(destination: ExternalFilmLinks.imdbSearchURL(for: screening.searchTitle)) {
+                                    Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
+                                }
+                                Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
+                                    Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
+                                }
                             }
-                            Link(destination: ExternalFilmLinks.allocineSearchURL(for: screening.searchTitle)) {
-                                Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
-                            }
-                        } else {
-                            Label(L10n.text("detail_search_imdb", language: appLanguage), systemImage: "movieclapper.fill")
-                                .foregroundStyle(.secondary)
-                            Label(L10n.text("detail_search_allocine", language: appLanguage), systemImage: "popcorn.fill")
-                                .foregroundStyle(.secondary)
                         }
-                    }
 
-                    Spacer(minLength: 12)
+                        Spacer(minLength: 12)
 
-                    if let year = screening.releaseYear {
-                        Text(verbatim: "\(year)")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                            .accessibilityLabel(L10n.text("detail_film_year", language: appLanguage))
-                            .accessibilityValue("\(year)")
+                        if let year = screening.releaseYear {
+                            Text(verbatim: "\(year)")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                                .accessibilityLabel(L10n.text("detail_film_year", language: appLanguage))
+                                .accessibilityValue("\(year)")
+                        }
                     }
                 }
             }
@@ -398,6 +411,167 @@ private struct ScreeningFactsGrid: View {
     }
 }
 
+// MARK: - Soirée Rattrapage
+
+private struct RattrapageDetailSection: View {
+    let canceledScreenings: [Screening]
+    let language: AppLanguage
+    let seasonYear: Int
+    let votingOpen: Bool
+    @ObservedObject var votes: RattrapageVotesStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if canceledScreenings.isEmpty {
+                Text(L10n.text("rattrapage_none_canceled", language: language))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            } else if votingOpen {
+                Text(L10n.text("rattrapage_canceled_heading", language: language))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(canceledScreenings) { canceled in
+                        RattrapagePollOptionRow(
+                            screening: canceled,
+                            language: language,
+                            voted: votes.hasVoted(screeningId: canceled.id),
+                            voteCount: votes.voteCount(screeningId: canceled.id),
+                            share: votes.voteShare(screeningId: canceled.id),
+                            onToggleVote: {
+                                votes.toggleVote(screeningId: canceled.id, seasonYear: seasonYear)
+                            }
+                        )
+                    }
+                }
+
+                if votes.totalVoteCount > 0 {
+                    Text(L10n.rattrapageTotalVotes(votes.totalVoteCount, language: language))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 2)
+                }
+            } else {
+                Text(L10n.text("rattrapage_canceled_heading", language: language))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(canceledScreenings) { canceled in
+                        NavigationLink(value: canceled) {
+                            Text(canceled.localizedTitle(language: language))
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Text(L10n.text("rattrapage_voting_closed", language: language))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
+            }
+        }
+        .onAppear {
+            guard votingOpen else { return }
+            votes.startObserving(
+                screeningIds: canceledScreenings.map(\.id),
+                seasonYear: seasonYear
+            )
+        }
+        .onChange(of: votingOpen) { _, open in
+            if open {
+                votes.startObserving(
+                    screeningIds: canceledScreenings.map(\.id),
+                    seasonYear: seasonYear
+                )
+            } else {
+                votes.stopAllObservations()
+            }
+        }
+        .onChange(of: canceledScreenings.map(\.id)) { _, ids in
+            guard votingOpen else { return }
+            votes.startObserving(screeningIds: ids, seasonYear: seasonYear)
+        }
+    }
+}
+
+/// WhatsApp-style poll option: checkbox + title + vote count over an animated fill bar.
+private struct RattrapagePollOptionRow: View {
+    let screening: Screening
+    let language: AppLanguage
+    let voted: Bool
+    let voteCount: Int
+    let share: Double
+    let onToggleVote: () -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Button(action: onToggleVote) {
+                HStack(alignment: .center, spacing: 10) {
+                    Image(systemName: voted ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(voted ? Color.festivalAccent : Color.secondary)
+
+                    Text(screening.localizedTitle(language: language))
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text(verbatim: "\(voteCount)")
+                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(voted ? Color.festivalAccent : Color.secondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                .background {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color.primary.opacity(0.06))
+
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(
+                                    voted
+                                        ? Color.festivalAccent.opacity(0.38)
+                                        : Color.festivalAccent.opacity(0.18)
+                                )
+                                .frame(width: max(0, geo.size.width * share))
+                                .animation(.spring(response: 0.45, dampingFraction: 0.82), value: share)
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                voted
+                    ? L10n.text("rattrapage_vote_remove", language: language)
+                    : L10n.text("rattrapage_vote_add", language: language)
+            )
+            .accessibilityValue("\(screening.localizedTitle(language: language)), \(voteCount)")
+
+            NavigationLink(value: screening) {
+                Image(systemName: "chevron.right")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .frame(minWidth: 36, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(screening.localizedTitle(language: language))
+        }
+    }
+}
+
 #Preview("Movie detail — facts row") {
     let stats = WatchListStatsStore()
     NavigationStack {
@@ -406,4 +580,5 @@ private struct ScreeningFactsGrid: View {
     .environmentObject(FestivalProgramStore.preview)
     .environmentObject(WatchListStore.preview(statsStore: stats))
     .environmentObject(stats)
+    .environmentObject(RattrapageVotesStore())
 }

@@ -442,6 +442,7 @@ def build_public_config_document(current_season_year: int) -> dict:
         "posterBaseURL": (
             "https://cinetransat-497ce.web.app/posters/{posterKey}.jpg"
         ),
+        "rattrapageVotingOpen": False,
     }
 
 

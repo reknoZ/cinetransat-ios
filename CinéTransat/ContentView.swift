@@ -164,4 +164,5 @@ private struct AboutFestivalView: View {
         .environmentObject(FestivalProgramStore.preview)
         .environmentObject(WatchListStore.preview(statsStore: stats))
         .environmentObject(stats)
+        .environmentObject(RattrapageVotesStore())
 }
