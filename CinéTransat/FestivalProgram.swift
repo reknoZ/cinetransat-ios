@@ -36,21 +36,26 @@ extension Array where Element == Screening {
 }
 
 extension Array where Element == FestivalWeek {
-    /// Week pager index for `date` — current week, next upcoming, or last week if the festival ended.
+    /// Week pager index when opening the Program tab.
+    /// Today's week if there is a screening tonight; otherwise the next week with an upcoming screening.
     func indexOfWeek(for date: Date = Date()) -> Int {
         guard !isEmpty else { return 0 }
-        let targetDay = FestivalCalendar.startOfDay(for: date)
+        let today = FestivalCalendar.startOfDay(for: date)
+        let allScreenings = flatMap(\.orderedScreenings)
 
-        if let exact = firstIndex(where: { week in
-            week.orderedScreenings.contains { $0.festivalDay == targetDay }
-        }) {
-            return exact
+        if !allScreenings.screenings(on: date).isEmpty,
+           let todayWeek = firstIndex(where: { week in
+               week.orderedScreenings.contains { $0.festivalDay == today }
+           }) {
+            return todayWeek
         }
+
         if let upcoming = firstIndex(where: { week in
-            week.orderedScreenings.contains { $0.festivalDay >= targetDay }
+            week.orderedScreenings.contains { $0.festivalDay >= today }
         }) {
             return upcoming
         }
+
         return count - 1
     }
 }

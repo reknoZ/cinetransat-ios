@@ -273,7 +273,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_FirebaseAppDelegateProxyEnabled = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "CinéTransat adds screenings you choose to your calendar.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Heewhack";
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "CinéTransat sends alerts when outdoor screenings are canceled due to weather.";
@@ -288,7 +288,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.heewhack.CineTransat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -313,7 +313,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_FirebaseAppDelegateProxyEnabled = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "CinéTransat adds screenings you choose to your calendar.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Heewhack";
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "CinéTransat sends alerts when outdoor screenings are canceled due to weather.";
@@ -328,7 +328,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.heewhack.CineTransat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
