@@ -184,6 +184,11 @@ struct Screening: Identifiable, Hashable {
         festivalDay < FestivalCalendar.startOfToday
     }
 
+    /// True when this screening is scheduled for today in Geneva.
+    var isFestivalDayToday: Bool {
+        festivalDay == FestivalCalendar.startOfToday
+    }
+
     /// Calendar day of this screening in Geneva (Europe/Zurich).
     var festivalDay: Date {
         FestivalCalendar.startOfDay(for: startsAt)
@@ -232,14 +237,16 @@ struct Screening: Identifiable, Hashable {
 
 extension Array where Element == Screening {
     /// Canceled films for Soirée Rattrapage, ordered by programme date.
+    /// Empty unless at least two announced screenings are canceled (voting needs a choice).
     func canceledForRattrapage(excludingRattrapageID: String? = nil) -> [Screening] {
-        filter { screening in
+        let canceled = filter { screening in
             (screening.isCanceled || RattrapageVotingDebug.isPretendCanceled(screening.id))
                 && screening.isProgramAnnounced
                 && !screening.isRattrapageEvening
                 && screening.id != excludingRattrapageID
         }
         .sorted { $0.startsAt < $1.startsAt }
+        return canceled.count > 1 ? canceled : []
     }
 }
 

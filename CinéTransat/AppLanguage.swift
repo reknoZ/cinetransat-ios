@@ -44,13 +44,22 @@ enum L10n {
             "settings_language": ("Langue", "Language"),
             "settings_about_section": ("À propos de CinéTransat !", "About CinéTransat!"),
             "settings_rate_app": ("Noter cette app", "Rate this app"),
-            "settings_send_feedback": ("Envoyer un commentaire", "Send feedback"),
+            "settings_send_feedback": ("Envoyer un commentaire", "Send Feedback"),
             "settings_feedback_subject": ("CinéTransat — commentaire", "CinéTransat — feedback"),
             "settings_feedback_unavailable": (
                 "Impossible d’ouvrir Mail. Écrivez à %@.",
                 "Unable to open Mail. Please email %@."
             ),
             "settings_about_version": ("Version", "Version"),
+            "review_prompt_title": ("Vous aimez cette app ?", "Like this app?"),
+            "review_prompt_message": (
+                "Touchez les étoiles pour noter, puis envoyez.",
+                "Tap the stars to rate, then submit."
+            ),
+            "review_prompt_rate": ("Noter", "Rate"),
+            "review_prompt_write": ("Écrire un avis", "Write a Review"),
+            "review_prompt_submit": ("Envoyer", "Submit"),
+            "review_prompt_later": ("Plus tard", "Not Now"),
             "settings_language_help": ("Le changement de langue s’applique immédiatement à l’interface principale.", "Language changes apply immediately to the main interface."),
             "about_intro": ("Six semaines en été, quatre soirs par semaine : cinéma gratuit en plein air après le coucher du soleil.", "Six weeks in summer, four nights each week: free open-air cinema after sunset."),
             "rattrapage_none_canceled": (
@@ -127,7 +136,9 @@ enum L10n {
                 "No upcoming screenings on your watch list."
             ),
             "program_season_picker": ("Choisir la saison", "Choose season"),
-            "program_season_picker_hint": ("Faites défiler pour choisir une autre saison", "Scroll to choose another season"),
+            "program_season_picker_hint": ("Utilisez les flèches pour changer de saison", "Use the arrows to change season"),
+            "program_season_older": ("Saison précédente", "Previous season"),
+            "program_season_newer": ("Saison suivante", "Next season"),
             "program_refresh_posters": ("Actualiser les affiches", "Refresh posters"),
             "info_nav_title": ("Infos pratiques", "Practical info"),
             "info_free_title": ("Projections gratuites", "Free screenings"),

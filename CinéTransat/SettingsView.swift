@@ -75,18 +75,17 @@ struct SettingsView: View {
                         }
                     }
 
-                    settingsSection(title: nil) {
+                    settingsSection(title: L10n.text("settings_about_section", language: appLanguage)) {
                         settingsActionButton(L10n.text("settings_send_feedback", language: appLanguage)) {
                             openFeedback()
                         }
                         settingsActionButton(L10n.text("settings_rate_app", language: appLanguage)) {
+                            AppReviewPromptController.shared.markReviewActionCompleted()
                             if let url = AppSupport.appStoreReviewURL {
                                 openURL(url)
                             }
                         }
-                    }
 
-                    settingsSection(title: L10n.text("settings_about_section", language: appLanguage)) {
                         HStack {
                             Text(L10n.text("settings_about_version", language: appLanguage))
                                 .foregroundStyle(Color.festivalAccent)

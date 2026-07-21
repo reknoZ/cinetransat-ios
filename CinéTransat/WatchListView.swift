@@ -186,14 +186,16 @@ struct WatchListView: View {
                 showDateBadge: false,
                 isPendingRemoval: isPendingRemoval,
                 removalSecondsLeft: removalSecondsLeft,
-                onWatchListToggle: {
-                    if isPendingRemoval {
-                        pendingRemovalId = nil
-                    } else {
-                        pendingRemovalId = screening.id
-                        removalSecondsLeft = Self.removalDelaySeconds
+                onWatchListToggle: screening.hasPassed
+                    ? nil
+                    : {
+                        if isPendingRemoval {
+                            pendingRemovalId = nil
+                        } else {
+                            pendingRemovalId = screening.id
+                            removalSecondsLeft = Self.removalDelaySeconds
+                        }
                     }
-                }
             )
 
             VStack(alignment: .leading, spacing: 4) {

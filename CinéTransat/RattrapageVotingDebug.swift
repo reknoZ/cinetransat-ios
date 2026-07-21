@@ -9,8 +9,8 @@
 import Foundation
 
 enum RattrapageVotingDebug {
-    /// Flip to `false` when finished testing the catch-up poll.
-    static let isEnabled = true
+    /// Flip to `true` only for local UI tests (fake cancellations / Rattrapage host).
+    static let isEnabled = false
 
     /// Week 1 (9–12 Jul) + Thu 16 Jul — treated as canceled for the Rattrapage poll list.
     static let pretendCanceledIDs: Set<String> = [

@@ -143,9 +143,10 @@ final class CancellationNotificationManager: NSObject, ObservableObject {
 
     /// Called when Firestore reports newly canceled screenings (foreground / background fallback).
     func handleNewlyCanceled(_ screenings: [Screening], seasonYear: Int, language: AppLanguage) {
-        guard isEnabled, !screenings.isEmpty else { return }
+        let tonight = screenings.filter(\.isFestivalDayToday)
+        guard isEnabled, !tonight.isEmpty else { return }
         Task {
-            await deliverLocalCancellationAlerts(screenings, seasonYear: seasonYear, language: language)
+            await deliverLocalCancellationAlerts(tonight, seasonYear: seasonYear, language: language)
         }
     }
 

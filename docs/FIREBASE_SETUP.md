@@ -50,6 +50,7 @@ Each screening map:
 - `websiteURL`, `practicalInfoURL`, `contactEmail`
 - `facebookURL`, `instagramURL` (optional)
 - `posterBaseURL` (optional) — any HTTPS template with `{posterKey}` (see **[POSTERS.md](POSTERS.md)** — **not** Firebase Storage)
+- `rattrapageVotingOpen` (optional, default `false`) — CT Admin toggle; when `true`, public apps show the Soirée Rattrapage poll
 
 Legacy field `seasonYear` on `publicConfig` is still decoded for older payloads.
 

@@ -42,9 +42,16 @@ final class FestivalProgramStore: ObservableObject {
         availableSeasonYears.max() ?? publicConfig.currentSeasonYear
     }
 
-    /// Watch list adds are limited to the active season once films are announced.
+    /// Watch list changes are limited to upcoming films in the active season once announced.
     func canAddToWatchList(_ screening: Screening) -> Bool {
-        seasonYear == publicConfig.currentSeasonYear && screening.isProgramAnnounced
+        seasonYear == publicConfig.currentSeasonYear
+            && screening.isProgramAnnounced
+            && !screening.hasPassed
+    }
+
+    /// Add or remove — past screenings are locked.
+    func canModifyWatchList(_ screening: Screening) -> Bool {
+        canAddToWatchList(screening)
     }
 
     /// Offline / pre-Firestore catalogue (newest first). Replaced when `seasons` is loaded.
@@ -300,40 +307,54 @@ final class FestivalProgramStore: ObservableObject {
     }
 
     #if canImport(FirebaseFirestore)
-    private static let knownCanceledIDsKey = "knownCanceledScreeningIDs"
+    private static let knownCanceledIDsPrefix = "knownCanceledScreeningIDs."
+    /// Legacy global key (pre–per-season). Cleared after migration.
+    private static let legacyKnownCanceledIDsKey = "knownCanceledScreeningIDs"
 
-    /// Tracks screening IDs we have already alerted for (persists across launches).
-    private func knownCanceledScreeningIDs() -> Set<String> {
-        Set(UserDefaults.standard.stringArray(forKey: Self.knownCanceledIDsKey) ?? [])
+    private func knownCanceledIDsKey(for seasonYear: Int) -> String {
+        "\(Self.knownCanceledIDsPrefix)\(seasonYear)"
     }
 
-    private func saveKnownCanceledScreeningIDs(_ ids: Set<String>) {
-        UserDefaults.standard.set(Array(ids), forKey: Self.knownCanceledIDsKey)
+    /// Tracks screening IDs we have already processed for alerts (persists across launches).
+    private func knownCanceledScreeningIDs(for seasonYear: Int) -> Set<String> {
+        Set(UserDefaults.standard.stringArray(forKey: knownCanceledIDsKey(for: seasonYear)) ?? [])
+    }
+
+    private func saveKnownCanceledScreeningIDs(_ ids: Set<String>, for seasonYear: Int) {
+        UserDefaults.standard.set(Array(ids), forKey: knownCanceledIDsKey(for: seasonYear))
+        // Drop legacy global key so past-season browsing cannot reuse it.
+        UserDefaults.standard.removeObject(forKey: Self.legacyKnownCanceledIDsKey)
     }
 
     private func processNewlyCanceledScreenings(from decoded: (seasonYear: Int, weeks: [FestivalWeek])) {
+        // Past / archive seasons must never fire cancellation alerts.
+        guard decoded.seasonYear == publicConfig.currentSeasonYear else { return }
+
         let canceledNow = decoded.weeks
             .flatMap(\.orderedScreenings)
             .filter(\.isCanceled)
         let canceledIDsNow = Set(canceledNow.map(\.id))
-        let known = knownCanceledScreeningIDs()
+        let known = knownCanceledScreeningIDs(for: decoded.seasonYear)
 
         if known.isEmpty {
-            // First run: record current state without alerting for films already canceled in Firestore.
-            saveKnownCanceledScreeningIDs(canceledIDsNow)
+            // First run for this season: record current cancels without alerting.
+            saveKnownCanceledScreeningIDs(canceledIDsNow, for: decoded.seasonYear)
             return
         }
 
-        let newlyCanceled = canceledNow.filter { !known.contains($0.id) }
-        if !newlyCanceled.isEmpty {
+        // Only alert for films canceled on their screening day (Geneva calendar).
+        let newlyCanceledToday = canceledNow.filter { screening in
+            !known.contains(screening.id) && screening.isFestivalDayToday
+        }
+        if !newlyCanceledToday.isEmpty {
             let language = Self.currentAppLanguage()
             CancellationNotificationManager.shared.handleNewlyCanceled(
-                newlyCanceled,
+                newlyCanceledToday,
                 seasonYear: decoded.seasonYear,
                 language: language
             )
         }
-        saveKnownCanceledScreeningIDs(canceledIDsNow)
+        saveKnownCanceledScreeningIDs(canceledIDsNow, for: decoded.seasonYear)
     }
     #endif
 

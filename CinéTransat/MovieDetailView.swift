@@ -70,8 +70,8 @@ struct MovieDetailView: View {
     }
 
     private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
+        guard program.canModifyWatchList(screening) else { return nil }
         let mayAdd = program.canAddToWatchList(screening)
-        guard mayAdd || watchList.contains(screening) else { return nil }
         return { watchList.toggle(screening, seasonYear: program.seasonYear, mayAdd: mayAdd) }
     }
 
@@ -192,15 +192,18 @@ struct MovieDetailView: View {
                 }
 
                 if screening.isRattrapageEvening {
-                    RattrapageDetailSection(
-                        canceledScreenings: program.allScreenings.canceledForRattrapage(
-                            excludingRattrapageID: screening.id
-                        ),
-                        language: appLanguage,
-                        seasonYear: program.seasonYear,
-                        votingOpen: program.publicConfig.rattrapageVotingOpen,
-                        votes: rattrapageVotes
+                    let canceled = program.allScreenings.canceledForRattrapage(
+                        excludingRattrapageID: screening.id
                     )
+                    if !canceled.isEmpty {
+                        RattrapageDetailSection(
+                            canceledScreenings: canceled,
+                            language: appLanguage,
+                            seasonYear: program.seasonYear,
+                            votingOpen: program.publicConfig.rattrapageVotingOpen,
+                            votes: rattrapageVotes
+                        )
+                    }
                 }
 
                 if screening.externalSearchLinksEnabled || screening.releaseYear != nil {
@@ -422,11 +425,7 @@ private struct RattrapageDetailSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if canceledScreenings.isEmpty {
-                Text(L10n.text("rattrapage_none_canceled", language: language))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            } else if votingOpen {
+            if votingOpen {
                 Text(L10n.text("rattrapage_canceled_heading", language: language))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)

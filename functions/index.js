@@ -61,6 +61,7 @@ function formatStartsAt(iso) {
   try {
     const d = new Date(iso);
     return d.toLocaleDateString("fr-CH", {
+      timeZone: "Europe/Zurich",
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -70,13 +71,34 @@ function formatStartsAt(iso) {
   }
 }
 
+/** YYYY-MM-DD in Europe/Zurich for a Date. */
+function zurichCalendarDay(date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+/** Only notify for screenings scheduled today (Geneva). */
+function isScreeningDayToday(screening) {
+  const iso = screening?.startsAt;
+  if (!iso) return false;
+  try {
+    return zurichCalendarDay(new Date(iso)) === zurichCalendarDay(new Date());
+  } catch {
+    return false;
+  }
+}
+
 exports.notifyScreeningCanceled = onDocumentUpdated(
   { document: "seasons/{year}" },
   async (event) => {
   const year = event.params.year;
   const before = event.data.before.data();
   const after = event.data.after.data();
-  const newlyCanceled = findNewlyCanceled(before, after);
+  const newlyCanceled = findNewlyCanceled(before, after).filter(isScreeningDayToday);
 
   // Always log (shows up as stdout) so logs are visible after each Firestore edit.
   console.log(
@@ -86,6 +108,7 @@ exports.notifyScreeningCanceled = onDocumentUpdated(
       beforeScreenings: screeningsById(before).size,
       afterScreenings: screeningsById(after).size,
       newlyCanceled: newlyCanceled.length,
+      newlyCanceledIds: newlyCanceled.map((s) => s.id),
     })
   );
 

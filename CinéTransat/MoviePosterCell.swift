@@ -15,7 +15,7 @@ struct MoviePosterCell: View {
     /// When set, poster is drawn at this width (height = width × 3/2). Otherwise uses flexible aspect-ratio tile.
     var posterWidth: CGFloat? = nil
     var isOnWatchList: Bool = false
-    /// When false, bookmark is hidden unless the screening is already on the list (remove allowed).
+    /// When false, bookmark is hidden unless already on the list (shown disabled — no add/remove).
     var watchListEnabled: Bool = true
     /// Top-left day pill on the poster (e.g. off for Watch List rows where the date appears beside the title).
     var showDateBadge: Bool = true
@@ -27,6 +27,10 @@ struct MoviePosterCell: View {
 
     private var showsWatchListControl: Bool {
         watchListEnabled || isOnWatchList
+    }
+
+    private var watchListInteractive: Bool {
+        onWatchListToggle != nil
     }
 
     /// Day + short month (no time), e.g. "10 juil." / "Jul 10"
@@ -175,8 +179,11 @@ struct MoviePosterCell: View {
                         )
                     } else {
                         watchListBookmarkLabel
+                            .accessibilityHidden(true)
                     }
                 }
+                .opacity(watchListInteractive ? 1 : 0.45)
+                .allowsHitTesting(watchListInteractive)
             }
         }
         .modifier(PosterSizingModifier(posterWidth: posterWidth))

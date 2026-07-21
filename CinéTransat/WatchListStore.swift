@@ -31,6 +31,7 @@ final class WatchListStore: ObservableObject {
     }
 
     func toggle(_ screening: Screening, seasonYear: Int, mayAdd: Bool = true) {
+        guard !screening.hasPassed else { return }
         let id = screening.watchListID
         let delta: Int
         if screeningIDs.contains(id) {

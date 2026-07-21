@@ -134,8 +134,8 @@ private struct WeekProgramFitContent: View {
     }
 
     private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
+        guard program.canModifyWatchList(screening) else { return nil }
         let mayAdd = program.canAddToWatchList(screening)
-        guard mayAdd || watchList.contains(screening) else { return nil }
         return {
             justToggledWatchListID = screening.watchListID
             watchList.toggle(screening, seasonYear: program.seasonYear, mayAdd: mayAdd)
