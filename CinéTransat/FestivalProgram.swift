@@ -236,17 +236,16 @@ struct Screening: Identifiable, Hashable {
 }
 
 extension Array where Element == Screening {
-    /// Canceled films for Soirée Rattrapage, ordered by programme date.
-    /// Empty unless at least two announced screenings are canceled (voting needs a choice).
+    /// Canceled films for Soirée Rattrapage / Catch Up Day, ordered by programme date.
+    /// Always includes announced cancellations (even a single film). Interactive voting is gated separately by `rattrapageVotingOpen`.
     func canceledForRattrapage(excludingRattrapageID: String? = nil) -> [Screening] {
-        let canceled = filter { screening in
+        filter { screening in
             (screening.isCanceled || RattrapageVotingDebug.isPretendCanceled(screening.id))
                 && screening.isProgramAnnounced
                 && !screening.isRattrapageEvening
                 && screening.id != excludingRattrapageID
         }
         .sorted { $0.startsAt < $1.startsAt }
-        return canceled.count > 1 ? canceled : []
     }
 }
 

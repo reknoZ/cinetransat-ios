@@ -66,6 +66,8 @@ enum L10n {
                 "Aucune séance n’a été annulée cette saison pour le moment.",
                 "No screenings have been canceled this season so far."
             ),
+            "rattrapage_canceled_one": ("Film annulé", "Canceled Movie"),
+            "rattrapage_canceled_many": ("Films annulés", "Canceled Movies"),
             "rattrapage_canceled_heading": (
                 "Quel film annulé avez-vous vraiment envie de voir ?",
                 "Which movie that was canceled do you really want to see?"
@@ -78,6 +80,15 @@ enum L10n {
                 "Le vote n’est pas encore ouvert.",
                 "Voting is not open yet."
             ),
+            "rattrapage_voting_open_title": (
+                "Le vote est ouvert !",
+                "Voting is open!"
+            ),
+            "rattrapage_voting_open_message": (
+                "Choisissez le film annulé que vous voulez vraiment voir lors de la soirée rattrapage.",
+                "Choose which canceled film you most want to see on Catch Up Night."
+            ),
+            "rattrapage_voting_open_ok": ("OK", "OK"),
             "screening_passed": ("Passé", "Passed"),
             "detail_legal_age": ("Âge légal", "Legal age"),
             "detail_recommended_age": ("Âge suggéré", "Recommended age"),

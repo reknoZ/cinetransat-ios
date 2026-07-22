@@ -423,10 +423,20 @@ private struct RattrapageDetailSection: View {
     let votingOpen: Bool
     @ObservedObject var votes: RattrapageVotesStore
 
+    private var canceledHeadingKey: String {
+        if canceledScreenings.count == 1 {
+            return "rattrapage_canceled_one"
+        }
+        if votingOpen {
+            return "rattrapage_canceled_heading"
+        }
+        return "rattrapage_canceled_many"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if votingOpen {
-                Text(L10n.text("rattrapage_canceled_heading", language: language))
+                Text(L10n.text(canceledHeadingKey, language: language))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
 
@@ -452,7 +462,7 @@ private struct RattrapageDetailSection: View {
                         .padding(.top, 2)
                 }
             } else {
-                Text(L10n.text("rattrapage_canceled_heading", language: language))
+                Text(L10n.text(canceledHeadingKey, language: language))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
 

@@ -59,6 +59,7 @@ private struct RootWithLaunchSplash: View {
     @State private var launchIsLoading = false
     @State private var showFeedbackMail = false
     @State private var showFeedbackUnavailableAlert = false
+    @State private var showRattrapageVotingOpenAlert = false
 
     private var appLanguage: AppLanguage {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
@@ -144,6 +145,14 @@ private struct RootWithLaunchSplash: View {
                 )
             )
         }
+        .alert(
+            L10n.text("rattrapage_voting_open_title", language: appLanguage),
+            isPresented: $showRattrapageVotingOpenAlert
+        ) {
+            Button(L10n.text("rattrapage_voting_open_ok", language: appLanguage), role: .cancel) {}
+        } message: {
+            Text(L10n.text("rattrapage_voting_open_message", language: appLanguage))
+        }
     }
 
     private func openFeedback(seasonYear: Int) {
@@ -171,6 +180,27 @@ private struct RootWithLaunchSplash: View {
             await CancellationNotificationManager.shared.promptForNotificationsOnFirstLaunchIfNeeded(
                 seasonYear: programStore.publicConfig.currentSeasonYear
             )
+            presentRattrapageVotingOpenAlertIfNeeded()
         }
+    }
+
+    private func presentRattrapageVotingOpenAlertIfNeeded() {
+        guard !AppStoreScreenshotConfiguration.isActive else { return }
+        guard programStore.publicConfig.rattrapageVotingOpen else { return }
+
+        let seasonYear = programStore.publicConfig.currentSeasonYear
+        let dayKey = FestivalCalendar.startOfToday
+        let formatter = DateFormatter()
+        formatter.calendar = FestivalCalendar.current
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Europe/Zurich") ?? .current
+        formatter.dateFormat = "yyyyMMdd"
+        let today = formatter.string(from: dayKey)
+        let storageKey = "rattrapageVotingOpenPrompt.\(seasonYear)"
+        if UserDefaults.standard.string(forKey: storageKey) == today {
+            return
+        }
+        UserDefaults.standard.set(today, forKey: storageKey)
+        showRattrapageVotingOpenAlert = true
     }
 }

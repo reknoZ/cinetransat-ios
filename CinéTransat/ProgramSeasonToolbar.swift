@@ -69,7 +69,7 @@ struct ProgramSeasonPicker: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: true, vertical: false)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(L10n.text("program_season_picker", language: appLanguage))
     }

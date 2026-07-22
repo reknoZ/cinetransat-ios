@@ -13,7 +13,7 @@ private struct WeekPageIndicatorBar: View {
     var language: AppLanguage
 
     var body: some View {
-        HStack(spacing: 9) {
+        HStack(spacing: 12) {
             ForEach(0 ..< count, id: \.self) { index in
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -22,7 +22,9 @@ private struct WeekPageIndicatorBar: View {
                 } label: {
                     Capsule()
                         .fill(index == selection ? Color.festivalAccent : Color.festivalProgramTitle.opacity(0.22))
-                        .frame(width: index == selection ? 22 : 7, height: 7)
+                        .frame(width: index == selection ? 28 : 10, height: 10)
+                        .frame(minWidth: 36, minHeight: 36)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(
@@ -30,8 +32,8 @@ private struct WeekPageIndicatorBar: View {
                 )
             }
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 20)
         .background {
             Capsule()
                 .fill(Color.festivalProgramPagerTrack)
@@ -40,8 +42,34 @@ private struct WeekPageIndicatorBar: View {
                         .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                 }
         }
-        .padding(.top, 6)
-        .padding(.bottom, 4)
+        .padding(.top, 14)
+        .padding(.bottom, 14)
+    }
+}
+
+private struct ProgramWeekHeaderCapsule: View {
+    let weekNumber: Int
+    let weekLabel: String
+    let language: AppLanguage
+    var compact: Bool = true
+
+    var body: some View {
+        Text(localizedWeekLabel(number: weekNumber, weekLabel: weekLabel, language: language))
+            .font(.caption.weight(.bold))
+            .tracking(0.6)
+            .foregroundStyle(Color.festivalAccent)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .padding(.horizontal, 14)
+            .padding(.vertical, compact ? 5 : 7)
+            .background {
+                Capsule()
+                    .fill(Color.festivalAccent.opacity(0.14))
+                    .overlay {
+                        Capsule()
+                            .strokeBorder(Color.festivalAccent.opacity(0.35), lineWidth: 1)
+                    }
+            }
     }
 }
 
@@ -58,6 +86,8 @@ private struct WeekProgramFitContent: View {
     var compact: Bool
     /// Pulls the date chip closer to the navigation bar (iPhone).
     var tightTop: Bool = false
+    /// When false, the week capsule is shown in the parent toolbar row instead.
+    var showWeekHeader: Bool = true
 
     private var appLanguage: AppLanguage {
         AppLanguage(rawValue: appLanguageRaw) ?? .fr
@@ -71,8 +101,8 @@ private struct WeekProgramFitContent: View {
     var body: some View {
         GeometryReader { geo in
             let hPad: CGFloat = compact ? 10 : 20
-            let weekStripH: CGFloat = compact ? 30 : 38
-            let dateToGridGap: CGFloat = compact ? 8 : 12
+            let weekStripH: CGFloat = showWeekHeader ? (compact ? 30 : 38) : 0
+            let dateToGridGap: CGFloat = showWeekHeader ? (compact ? 8 : 12) : (compact ? 4 : 8)
             let rowGap: CGFloat = compact ? 6 : 10
             let colGap: CGFloat = compact ? 14 : 18
             // Reserve enough space for two full caption lines to avoid clipping.
@@ -90,28 +120,24 @@ private struct WeekProgramFitContent: View {
             let posterW = max(72, min(posterWFromWidth, posterWFromHeight))
 
             VStack(spacing: 0) {
-                HStack(alignment: .center, spacing: 8) {
-                    Text(localizedWeekLabel(number: weekNumber, weekLabel: week.label, language: appLanguage))
-                        .font(.caption.weight(.bold))
-                        .tracking(0.6)
-                        .foregroundStyle(Color.festivalAccent)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, compact ? 5 : 7)
-                        .background {
-                            Capsule()
-                                .fill(Color.festivalAccent.opacity(0.14))
-                                .overlay {
-                                    Capsule()
-                                        .strokeBorder(Color.festivalAccent.opacity(0.35), lineWidth: 1)
-                                }
-                        }
+                if showWeekHeader {
+                    HStack(alignment: .center, spacing: 8) {
+                        ProgramWeekHeaderCapsule(
+                            weekNumber: weekNumber,
+                            weekLabel: week.label,
+                            language: appLanguage,
+                            compact: compact
+                        )
 
-                    Spacer(minLength: 0)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(height: weekStripH)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Color.clear.frame(height: dateToGridGap)
+                } else {
+                    Color.clear.frame(height: dateToGridGap)
                 }
-                .frame(height: weekStripH)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Color.clear.frame(height: dateToGridGap)
 
                 VStack(spacing: rowGap) {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -201,17 +227,37 @@ struct ProgramPhoneView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
-                ProgramSeasonPicker(appLanguage: appLanguage) {
-                    syncToFocusedWeek(animated: false)
+                HStack(alignment: .center, spacing: 8) {
+                    ProgramSeasonPicker(appLanguage: appLanguage) {
+                        syncToFocusedWeek(animated: false)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    if program.weeks.indices.contains(weekIndex) {
+                        ProgramWeekHeaderCapsule(
+                            weekNumber: weekIndex + 1,
+                            weekLabel: program.weeks[weekIndex].label,
+                            language: appLanguage,
+                            compact: true
+                        )
+                    }
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, 4)
-                .padding(.bottom, 2)
+                .padding(.bottom, 6)
 
                 TabView(selection: $weekIndex) {
                     ForEach(Array(program.weeks.enumerated()), id: \.element.id) { index, week in
-                        WeekProgramFitContent(path: $path, week: week, weekNumber: index + 1, compact: true, tightTop: true)
-                            .tag(index)
+                        WeekProgramFitContent(
+                            path: $path,
+                            week: week,
+                            weekNumber: index + 1,
+                            compact: true,
+                            tightTop: true,
+                            showWeekHeader: false
+                        )
+                        .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
@@ -311,14 +357,32 @@ struct ProgramPadView: View {
                 Group {
                     if let week = selectedWeek ?? program.weeks.first {
                         VStack(spacing: 0) {
-                            ProgramSeasonPicker(appLanguage: appLanguage) {
-                                syncToFocusedWeek()
+                            HStack(alignment: .center, spacing: 8) {
+                                ProgramSeasonPicker(appLanguage: appLanguage) {
+                                    syncToFocusedWeek()
+                                }
+
+                                Spacer(minLength: 8)
+
+                                ProgramWeekHeaderCapsule(
+                                    weekNumber: weekNumber(for: week),
+                                    weekLabel: week.label,
+                                    language: appLanguage,
+                                    compact: false
+                                )
                             }
                             .padding(.horizontal, 20)
                             .padding(.top, 8)
-                            .padding(.bottom, 4)
+                            .padding(.bottom, 8)
 
-                            WeekProgramFitContent(path: $path, week: week, weekNumber: weekNumber(for: week), compact: false, tightTop: false)
+                            WeekProgramFitContent(
+                                path: $path,
+                                week: week,
+                                weekNumber: weekNumber(for: week),
+                                compact: false,
+                                tightTop: false,
+                                showWeekHeader: false
+                            )
                         }
                             .festivalScreenBackground()
                             .navigationBarTitleDisplayMode(.inline)
