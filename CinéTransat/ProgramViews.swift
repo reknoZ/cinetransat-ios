@@ -42,8 +42,8 @@ private struct WeekPageIndicatorBar: View {
                         .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                 }
         }
-        .padding(.top, 14)
-        .padding(.bottom, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
     }
 }
 
@@ -103,10 +103,10 @@ private struct WeekProgramFitContent: View {
             let hPad: CGFloat = compact ? 10 : 20
             let weekStripH: CGFloat = showWeekHeader ? (compact ? 30 : 38) : 0
             let dateToGridGap: CGFloat = showWeekHeader ? (compact ? 8 : 12) : (compact ? 4 : 8)
-            let rowGap: CGFloat = compact ? 6 : 10
+            let rowGap: CGFloat = compact ? 2 : 6
             let colGap: CGFloat = compact ? 14 : 18
             // Reserve enough space for two full caption lines to avoid clipping.
-            let titleBlock: CGFloat = compact ? 42 : 46
+            let titleBlock: CGFloat = compact ? 38 : 44
 
             let topInset: CGFloat = tightTop ? -2 : (compact ? 2 : 6)
             let innerW = geo.size.width - hPad * 2
@@ -117,7 +117,9 @@ private struct WeekProgramFitContent: View {
 
             let posterWFromWidth = (innerW - colGap) / 2
             let posterWFromHeight = (innerH - rowGap - titleBlock * 2) / 3
-            let posterW = max(72, min(posterWFromWidth, posterWFromHeight))
+            // Slightly under-size so the week pager stays fully visible above the tab bar.
+            let posterScale: CGFloat = compact ? 0.90 : 0.94
+            let posterW = max(68, min(posterWFromWidth, posterWFromHeight) * posterScale)
 
             VStack(spacing: 0) {
                 if showWeekHeader {
@@ -212,10 +214,9 @@ private struct WeekProgramFitContent: View {
 
 struct ProgramPhoneView: View {
     @EnvironmentObject private var program: FestivalProgramStore
+    @EnvironmentObject private var programNav: ProgramNavigationModel
     @Environment(\.appStoreScreenshotProgramWeekIndex) private var screenshotWeekIndex
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
-    @State private var weekIndex = 0
-    @State private var path = NavigationPath()
     var programFocusGeneration: Int = 0
 
     private var appLanguage: AppLanguage {
@@ -225,7 +226,7 @@ struct ProgramPhoneView: View {
     private let horizontalPadding: CGFloat = 10
 
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack(path: $programNav.path) {
             VStack(spacing: 0) {
                 HStack(alignment: .center, spacing: 8) {
                     ProgramSeasonPicker(appLanguage: appLanguage) {
@@ -234,10 +235,10 @@ struct ProgramPhoneView: View {
 
                     Spacer(minLength: 8)
 
-                    if program.weeks.indices.contains(weekIndex) {
+                    if program.weeks.indices.contains(programNav.weekIndex) {
                         ProgramWeekHeaderCapsule(
-                            weekNumber: weekIndex + 1,
-                            weekLabel: program.weeks[weekIndex].label,
+                            weekNumber: programNav.weekIndex + 1,
+                            weekLabel: program.weeks[programNav.weekIndex].label,
                             language: appLanguage,
                             compact: true
                         )
@@ -247,10 +248,10 @@ struct ProgramPhoneView: View {
                 .padding(.top, 4)
                 .padding(.bottom, 6)
 
-                TabView(selection: $weekIndex) {
+                TabView(selection: $programNav.weekIndex) {
                     ForEach(Array(program.weeks.enumerated()), id: \.element.id) { index, week in
                         WeekProgramFitContent(
-                            path: $path,
+                            path: $programNav.path,
                             week: week,
                             weekNumber: index + 1,
                             compact: true,
@@ -261,29 +262,42 @@ struct ProgramPhoneView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                WeekPageIndicatorBar(count: program.weeks.count, selection: $weekIndex, language: appLanguage)
+                WeekPageIndicatorBar(
+                    count: program.weeks.count,
+                    selection: $programNav.weekIndex,
+                    language: appLanguage
+                )
+                .fixedSize(horizontal: false, vertical: true)
             }
             .festivalScreenBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Screening.self) { screening in
-                MovieDetailView(screening: screening, lineupScope: .fullProgram)
+                MovieDetailView(screening: screening, lineupScope: .fullProgram) { id in
+                    programNav.displayedDetailScreeningID = id
+                }
             }
             .onAppear {
                 if let screenshotWeekIndex {
                     let maxIndex = max(0, program.weeks.count - 1)
-                    weekIndex = min(max(0, screenshotWeekIndex), maxIndex)
+                    programNav.weekIndex = min(max(0, screenshotWeekIndex), maxIndex)
                 } else {
                     syncToFocusedWeek(animated: false)
                 }
+                programNav.applyPendingOpenIfNeeded()
             }
             .onChange(of: programFocusGeneration) { _, _ in
                 syncToFocusedWeek(animated: true)
             }
+            .onChange(of: programNav.openToken) { _, _ in
+                syncToFocusedWeek(animated: false)
+                programNav.applyPendingOpenIfNeeded()
+            }
             .onChange(of: program.lastUpdatedAt) { _, _ in
                 // After Firestore loads, correct the default Week 1 if we should be further ahead.
-                guard weekIndex == 0, focusedWeekIndex != 0 else { return }
+                guard programNav.weekIndex == 0, focusedWeekIndex != 0 else { return }
                 syncToFocusedWeek(animated: false)
             }
             .onChange(of: program.seasonYear) { _, _ in
@@ -300,13 +314,13 @@ struct ProgramPhoneView: View {
     private func syncToFocusedWeek(animated: Bool) {
         guard !program.weeks.isEmpty else { return }
         let target = focusedWeekIndex
-        guard weekIndex != target else { return }
+        guard programNav.weekIndex != target else { return }
         if animated {
             withAnimation(.easeInOut(duration: 0.2)) {
-                weekIndex = target
+                programNav.weekIndex = target
             }
         } else {
-            weekIndex = target
+            programNav.weekIndex = target
         }
     }
 }
@@ -315,9 +329,8 @@ struct ProgramPhoneView: View {
 
 struct ProgramPadView: View {
     @EnvironmentObject private var program: FestivalProgramStore
+    @EnvironmentObject private var programNav: ProgramNavigationModel
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
-    @State private var selectedWeek: FestivalWeek?
-    @State private var path = NavigationPath()
     var programFocusGeneration: Int = 0
 
     private var appLanguage: AppLanguage {
@@ -326,7 +339,7 @@ struct ProgramPadView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedWeek) {
+            List(selection: $programNav.selectedWeek) {
                 ForEach(program.weeks) { week in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(week.label)
@@ -344,18 +357,23 @@ struct ProgramPadView: View {
             .navigationTitle(L10n.text("program_weeks_title", language: appLanguage))
             .onAppear {
                 syncToFocusedWeek()
+                programNav.applyPendingOpenIfNeeded()
             }
             .onChange(of: program.weeks) { _, weeks in
-                if let selected = selectedWeek,
+                if let selected = programNav.selectedWeek,
                    weeks.contains(where: { $0.id == selected.id }) {
                     return
                 }
                 syncToFocusedWeek()
             }
+            .onChange(of: programNav.openToken) { _, _ in
+                syncToFocusedWeek()
+                programNav.applyPendingOpenIfNeeded()
+            }
         } detail: {
-            NavigationStack(path: $path) {
+            NavigationStack(path: $programNav.path) {
                 Group {
-                    if let week = selectedWeek ?? program.weeks.first {
+                    if let week = programNav.selectedWeek ?? program.weeks.first {
                         VStack(spacing: 0) {
                             HStack(alignment: .center, spacing: 8) {
                                 ProgramSeasonPicker(appLanguage: appLanguage) {
@@ -376,7 +394,7 @@ struct ProgramPadView: View {
                             .padding(.bottom, 8)
 
                             WeekProgramFitContent(
-                                path: $path,
+                                path: $programNav.path,
                                 week: week,
                                 weekNumber: weekNumber(for: week),
                                 compact: false,
@@ -388,7 +406,9 @@ struct ProgramPadView: View {
                             .navigationBarTitleDisplayMode(.inline)
                             .toolbar(.hidden, for: .navigationBar)
                             .navigationDestination(for: Screening.self) { screening in
-                                MovieDetailView(screening: screening, lineupScope: .fullProgram)
+                                MovieDetailView(screening: screening, lineupScope: .fullProgram) { id in
+                                    programNav.displayedDetailScreeningID = id
+                                }
                             }
                     } else {
                         ContentUnavailableView(
@@ -408,7 +428,7 @@ struct ProgramPadView: View {
         }
         .onChange(of: program.lastUpdatedAt) { _, _ in
             guard let first = program.weeks.first,
-                  selectedWeek?.id == first.id,
+                  programNav.selectedWeek?.id == first.id,
                   let focused = focusedWeek,
                   focused.id != first.id else { return }
             syncToFocusedWeek()
@@ -425,8 +445,8 @@ struct ProgramPadView: View {
 
     private func syncToFocusedWeek() {
         guard let week = focusedWeek else { return }
-        guard selectedWeek?.id != week.id else { return }
-        selectedWeek = week
+        guard programNav.selectedWeek?.id != week.id else { return }
+        programNav.selectedWeek = week
     }
 
     private func subtitle(for week: FestivalWeek) -> String {

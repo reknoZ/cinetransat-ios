@@ -10,7 +10,6 @@ import EventKit
 enum MovieDetailLineupScope: Hashable {
     case fullProgram
     case watchListOnly
-    case todayOnly
 }
 
 struct MovieDetailView: View {
@@ -21,6 +20,8 @@ struct MovieDetailView: View {
     @AppStorage("appLanguage") private var appLanguageRaw = AppLanguage.fr.rawValue
 
     let lineupScope: MovieDetailLineupScope
+    /// Notified when the visible film changes (including prev/next) or the detail disappears.
+    var onDisplayedScreeningIDChange: ((String?) -> Void)? = nil
     @State private var screening: Screening
     @State private var calendarEditPayload: CalendarEditPayload?
     @State private var showCalendarAccessDenied = false
@@ -31,8 +32,13 @@ struct MovieDetailView: View {
         let event: EKEvent
     }
 
-    init(screening: Screening, lineupScope: MovieDetailLineupScope = .fullProgram) {
+    init(
+        screening: Screening,
+        lineupScope: MovieDetailLineupScope = .fullProgram,
+        onDisplayedScreeningIDChange: ((String?) -> Void)? = nil
+    ) {
         self.lineupScope = lineupScope
+        self.onDisplayedScreeningIDChange = onDisplayedScreeningIDChange
         _screening = State(initialValue: screening)
     }
 
@@ -46,8 +52,6 @@ struct MovieDetailView: View {
             program.allScreenings
         case .watchListOnly:
             watchList.orderedWatchListScreenings(in: program.weeks)
-        case .todayOnly:
-            program.allScreenings.screeningsToday()
         }
     }
 
@@ -65,10 +69,6 @@ struct MovieDetailView: View {
         return navigableLineup[i + 1]
     }
 
-    private var showsFilmNavigation: Bool {
-        lineupScope != .todayOnly
-    }
-
     private func watchListToggleAction(for screening: Screening) -> (() -> Void)? {
         guard program.canModifyWatchList(screening) else { return nil }
         let mayAdd = program.canAddToWatchList(screening)
@@ -78,58 +78,26 @@ struct MovieDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if showsFilmNavigation {
-                    HStack(alignment: .center, spacing: 12) {
-                        if let prev = previousScreening {
-                            Button {
-                                screening = prev
-                            } label: {
-                                Image(systemName: "chevron.left")
-                                    .font(.title2.weight(.semibold))
-                                    .frame(minWidth: 44, minHeight: 44)
-                                    .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(L10n.text("detail_previous_film", language: appLanguage))
-                        } else {
+                HStack(alignment: .center, spacing: 12) {
+                    if let prev = previousScreening {
+                        Button {
+                            screening = prev
+                        } label: {
                             Image(systemName: "chevron.left")
                                 .font(.title2.weight(.semibold))
-                                .foregroundStyle(.tertiary)
                                 .frame(minWidth: 44, minHeight: 44)
-                                .accessibilityHidden(true)
+                                .contentShape(Rectangle())
                         }
-
-                        MoviePosterCell(
-                            screening: screening,
-                            compact: false,
-                            isOnWatchList: watchList.contains(screening),
-                            watchListEnabled: program.canAddToWatchList(screening),
-                            onWatchListToggle: watchListToggleAction(for: screening)
-                        )
-                        .id(screening.id)
-                        .frame(maxWidth: 280)
-
-                        if let next = nextScreening {
-                            Button {
-                                screening = next
-                            } label: {
-                                Image(systemName: "chevron.right")
-                                    .font(.title2.weight(.semibold))
-                                    .frame(minWidth: 44, minHeight: 44)
-                                    .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(L10n.text("detail_next_film", language: appLanguage))
-                        } else {
-                            Image(systemName: "chevron.right")
-                                .font(.title2.weight(.semibold))
-                                .foregroundStyle(.tertiary)
-                                .frame(minWidth: 44, minHeight: 44)
-                                .accessibilityHidden(true)
-                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(L10n.text("detail_previous_film", language: appLanguage))
+                    } else {
+                        Image(systemName: "chevron.left")
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .accessibilityHidden(true)
                     }
-                    .frame(maxWidth: .infinity)
-                } else {
+
                     MoviePosterCell(
                         screening: screening,
                         compact: false,
@@ -137,9 +105,29 @@ struct MovieDetailView: View {
                         watchListEnabled: program.canAddToWatchList(screening),
                         onWatchListToggle: watchListToggleAction(for: screening)
                     )
+                    .id(screening.id)
                     .frame(maxWidth: 280)
-                    .frame(maxWidth: .infinity)
+
+                    if let next = nextScreening {
+                        Button {
+                            screening = next
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.title2.weight(.semibold))
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(L10n.text("detail_next_film", language: appLanguage))
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .accessibilityHidden(true)
+                    }
                 }
+                .frame(maxWidth: .infinity)
 
                 VStack(alignment: .leading, spacing: 8) {
                     if screening.isCanceled {
@@ -241,13 +229,16 @@ struct MovieDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             watchListStats.startObserving(screeningId: screening.id)
+            onDisplayedScreeningIDChange?(screening.id)
         }
         .onDisappear {
             watchListStats.stopObserving(screeningId: screening.id)
+            onDisplayedScreeningIDChange?(nil)
         }
         .onChange(of: screening.id) { oldId, newId in
             watchListStats.stopObserving(screeningId: oldId)
             watchListStats.startObserving(screeningId: newId)
+            onDisplayedScreeningIDChange?(newId)
         }
         .sheet(item: $calendarEditPayload) { payload in
             CalendarEventEditView(eventStore: payload.store, event: payload.event)
