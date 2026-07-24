@@ -26,10 +26,10 @@ final class ProgramNavigationModel: ObservableObject {
     func applyPendingOpenIfNeeded() {
         guard let screening = pendingScreening else { return }
         pendingScreening = nil
-        var next = NavigationPath()
-        next.append(screening)
-        path = next
+        // Clear first so re-opening the same screening still refreshes the stack.
+        path = NavigationPath()
         displayedDetailScreeningID = screening.id
+        path.append(screening)
     }
 
     func popToRoot() {

@@ -278,6 +278,8 @@ struct ProgramPhoneView: View {
                 MovieDetailView(screening: screening, lineupScope: .fullProgram) { id in
                     programNav.displayedDetailScreeningID = id
                 }
+                // Remount when Today is tapped again so <> local state resets to today's film.
+                .id("\(screening.id)-\(programNav.openToken)")
             }
             .onAppear {
                 if let screenshotWeekIndex {
@@ -409,6 +411,8 @@ struct ProgramPadView: View {
                                 MovieDetailView(screening: screening, lineupScope: .fullProgram) { id in
                                     programNav.displayedDetailScreeningID = id
                                 }
+                                // Remount when Today is tapped again so <> local state resets to today's film.
+                                .id("\(screening.id)-\(programNav.openToken)")
                             }
                     } else {
                         ContentUnavailableView(
