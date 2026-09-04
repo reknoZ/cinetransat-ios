@@ -75,7 +75,11 @@ private struct RootWithLaunchSplash: View {
             }
 
             if showSplash, !AppStoreScreenshotConfiguration.isActive {
-                FestivalLaunchSplashView(isLoading: $launchIsLoading) {
+                FestivalLaunchSplashView(
+                    isLoading: $launchIsLoading,
+                    seasonEnded: FestivalSeasonCalendar.isCurrentSeasonOver(),
+                    seasonYear: FestivalPublicConfig.currentSeasonYear
+                ) {
                     beginPostLaunchLoading()
                 }
                 .transition(.opacity)

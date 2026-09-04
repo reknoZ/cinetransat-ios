@@ -33,6 +33,59 @@ extension Array where Element == Screening {
     func screeningsToday() -> [Screening] {
         screenings(on: Date())
     }
+
+    /// Last screening day in the programme (Geneva calendar).
+    var lastFestivalDay: Date? {
+        guard !isEmpty else { return nil }
+        return map(\.festivalDay).max()
+    }
+
+    /// True when today (Geneva) is after the last scheduled screening day.
+    func isFestivalSeasonOver(asOf date: Date = Date()) -> Bool {
+        guard let last = lastFestivalDay else { return false }
+        return FestivalCalendar.startOfDay(for: date) > last
+    }
+}
+
+enum FestivalSeasonCalendar {
+    /// Best-effort programme for season-end detection at launch (bundled, then disk cache).
+    static func screeningsForCurrentSeason() -> [Screening] {
+        let year = FestivalPublicConfig.currentSeasonYear
+        if let bundled = FestivalProgramFeedDecoder.loadBundledSeason(year: year) {
+            return bundled.weeks.flatMap(\.orderedScreenings)
+        }
+        if let cached = loadCachedScreenings(year: year) {
+            return cached
+        }
+        return []
+    }
+
+    static func isCurrentSeasonOver(asOf date: Date = Date()) -> Bool {
+        screeningsForCurrentSeason().isFestivalSeasonOver(asOf: date)
+    }
+
+    private static var cacheDirectory: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = base.appendingPathComponent("FestivalData", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    private static func loadCachedScreenings(year: Int) -> [Screening]? {
+        let url = cacheDirectory.appendingPathComponent("season-\(year).json")
+        if let data = try? Data(contentsOf: url),
+           let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let decoded = try? FestivalProgramFeedDecoder.decodeProgram(from: object) {
+            return decoded.weeks.flatMap(\.orderedScreenings)
+        }
+        let legacy = cacheDirectory.appendingPathComponent("program.json")
+        guard let legacyData = try? Data(contentsOf: legacy),
+              let legacyObject = try? JSONSerialization.jsonObject(with: legacyData) as? [String: Any],
+              let decoded = try? FestivalProgramFeedDecoder.decodeProgram(from: legacyObject) else {
+            return nil
+        }
+        return decoded.weeks.flatMap(\.orderedScreenings)
+    }
 }
 
 extension Array where Element == FestivalWeek {

@@ -31,6 +31,18 @@ enum L10n {
         let table: [String: (fr: String, en: String)] = [
             "tab_program": ("Programme", "Program"),
             "tab_today": ("Aujourd'hui", "Today"),
+            "splash_season_ended_title": (
+                "La saison %d est terminée",
+                "The %d season is over"
+            ),
+            "splash_season_ended_message": (
+                "À l'année prochaine !",
+                "See you next year!"
+            ),
+            "splash_season_ended_continue": (
+                "Continuer",
+                "Continue"
+            ),
             "tab_watchlist": ("À voir", "Watchlist"),
             "watchlist_empty_title": ("Rien dans votre liste", "Nothing on your watch list yet"),
             "watchlist_empty_body": (
@@ -332,8 +344,8 @@ enum L10n {
             ),
             "settings_notifications": ("Alertes annulations", "Cancellation alerts"),
             "settings_notifications_help": (
-                "Recevez une notification si une séance est annulée (pluie ou vent), même lorsque l’app est fermée.",
-                "Get notified when a screening is canceled (rain or wind), even when the app is closed."
+                "Recevez une notification si une séance est annulée, même lorsque l’app est fermée.",
+                "Get notified when a screening is canceled, even when the app is closed."
             ),
             "settings_notifications_enable": ("Activer les notifications", "Enable notifications"),
             "settings_notifications_on": ("Notifications activées", "Notifications on"),
